@@ -1,0 +1,12 @@
+[package]
+name = "smith-windows"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-trait.workspace = true
+serde_json.workspace = true
+smith-core = { version = "0.1.0", path = "../smith-core" }
+tokio.workspace = true
+tokio-util.workspace = true
+uiautomation = "0.25.0"

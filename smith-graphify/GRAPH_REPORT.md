@@ -1,0 +1,202 @@
+# 📊 Graph Analysis Report
+
+**Root:** `.`
+
+## Summary
+
+| Metric | Value |
+|--------|-------|
+| Nodes | 88 |
+| Edges | 99 |
+| Communities | 14 |
+| Hyperedges | 0 |
+
+### Confidence Breakdown
+
+| Level | Count | Percentage |
+|-------|-------|------------|
+| EXTRACTED | 79 | 79.8% |
+| INFERRED | 20 | 20.2% |
+| AMBIGUOUS | 0 | 0.0% |
+
+## 🌟 God Nodes (Most Connected)
+
+| Node | Degree | Community |
+|------|--------|-----------|
+| smith-context::main | 31 | 0 |
+| main() | 12 | 1 |
+| ExecutionContext | 7 | 5 |
+| ClickTool | 7 | 2 |
+| tool | 6 | 4 |
+| click | 6 | 6 |
+| context | 6 | 7 |
+| collect_files() | 6 | 8 |
+| ContextValue | 5 | 9 |
+| SafeUIElement | 4 | 3 |
+
+## 🔮 Surprising Connections
+
+- **apps_smith_context_src_main_rs_main** → **apps_smith_context_src_main_rs_collect_files** (calls)
+- **apps_smith_context_src_main_rs_main** → **apps_smith_context_src_main_rs_build_tree** (calls)
+- **apps_smith_context_src_main_rs_main** → **apps_smith_context_src_main_rs_build_stats** (calls)
+- **crates_smith_core_src_context_rs** → **crates_smith_core_src_context_rs_contextvalue** (defines)
+- **crates_smith_core_src_context_rs** → **crates_smith_core_src_context_rs_executioncontext** (defines)
+
+## 🏘️ Communities
+
+### Community 0 — TreeNode (18 nodes, cohesion: 0.12)
+
+- main
+- build_stats()
+- build_tree()
+- Cli
+- extract_crate_name()
+- FileEntry
+- GraphifyArtifacts
+- anyhow::Result
+- chrono::Local
+- clap::Parser
+- ignore::gitignore::GitignoreBuilder
+- std::collections::{BTreeMap, HashMap}
+- std::path::{Path, PathBuf}
+- walkdir::WalkDir
+- MarkdownContext
+- ProjectStats
+- render_tree()
+- TreeNode
+
+### Community 1 — run_graphify_build() (9 nodes, cohesion: 0.22)
+
+- build_env_info()
+- build_git_log()
+- build_graph()
+- collect_todos()
+- format_markdown()
+- load_graphify_artifacts()
+- main()
+- read_workspace_cargo()
+- run_graphify_build()
+
+### Community 2 — ClickTool (7 nodes, cohesion: 0.33)
+
+- ClickTool
+- .default()
+- .description()
+- .execute()
+- .name()
+- .new()
+- .schema()
+
+### Community 3 — SafeUIElement (7 nodes, cohesion: 0.29)
+
+- element
+- std::sync::Arc
+- uiautomation::UIElement
+- SafeUIElement
+- .clone()
+- .inner()
+- .new()
+
+### Community 4 — Tool (7 nodes, cohesion: 0.29)
+
+- tool
+- async_trait::async_trait
+- crate::context::ExecutionContext
+- crate::error::SmithResult
+- serde_json::Value
+- tokio_util::sync::CancellationToken
+- Tool
+
+### Community 5 — ExecutionContext (7 nodes, cohesion: 0.38)
+
+- ExecutionContext
+- .default()
+- .get()
+- .new()
+- .pop_scope()
+- .push_scope()
+- .set()
+
+### Community 6 — click (6 nodes, cohesion: 0.33)
+
+- click
+- async_trait::async_trait
+- crate::element::SafeUIElement
+- serde_json::{Value, json}
+- smith_core::{ExecutionContext, SmithError, SmithResult, Tool, ToolConfig, ToolResult}
+- tokio_util::sync::CancellationToken
+
+### Community 7 — context (5 nodes, cohesion: 0.40)
+
+- context
+- crate::error::{SmithError, SmithResult}
+- std::any::Any
+- std::collections::HashMap
+- std::sync::Arc
+
+### Community 8 — is_binary_extension() (5 nodes, cohesion: 0.40)
+
+- collect_files()
+- detect_language()
+- is_always_excluded_dir()
+- is_always_excluded_file()
+- is_binary_extension()
+
+### Community 9 — .try_as_string() (5 nodes, cohesion: 0.40)
+
+- ContextValue
+- .try_as_boolean()
+- .try_as_custom()
+- .try_as_number()
+- .try_as_string()
+
+### Community 10 — lib (4 nodes, cohesion: 0.50)
+
+- lib
+- pub use context::{ContextValue, ExecutionContext}
+- pub use error::{SmithError, SmithResult}
+- pub use tool::{Tool, ToolConfig, ToolResult}
+
+### Community 11 — SmithError (3 nodes, cohesion: 0.67)
+
+- error
+- thiserror::Error
+- SmithError
+
+### Community 12 — lib (12) (3 nodes, cohesion: 0.67)
+
+- lib
+- pub use element::SafeUIElement
+- pub use tools::ClickTool
+
+### Community 13 — mod (2 nodes, cohesion: 1.00)
+
+- mod
+- pub use click::ClickTool
+
+## 🕳️ Knowledge Gaps
+
+No isolated nodes.
+
+**Thin communities** (< 3 nodes): 1 communities
+
+## 💰 Token Cost
+
+| File | Tokens |
+|------|--------|
+| output | 0 |
+| input | 0 |
+| **Total** | **0** |
+
+## ❓ Suggested Questions
+
+1. How does 'apps_smith_context_src_main_rs' relate to 3 different communities (is_binary_extension(), run_graphify_build(), TreeNode)?
+1. How does 'apps_smith_context_src_main_rs_main' relate to 3 different communities (run_graphify_build(), is_binary_extension(), TreeNode)?
+1. How does 'crates_smith_core_src_context_rs' relate to 3 different communities (context, .try_as_string(), ExecutionContext)?
+1. How does 'apps_smith_context_src_main_rs_collect_files' relate to 3 different communities (is_binary_extension(), run_graphify_build(), TreeNode)?
+1. Can you verify the inferred relationships of 'main()' (degree 12)?
+1. Why is 'run_graphify_build()' (9 nodes) loosely connected (cohesion 0.22)? Should it be split?
+1. Why is 'SafeUIElement' (7 nodes) loosely connected (cohesion 0.29)? Should it be split?
+
+---
+_Generated by graphify-rs_

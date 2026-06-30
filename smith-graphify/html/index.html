@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knowledge Graph — Overview</title>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f0f1a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+#sidebar { width: 320px; min-width: 320px; background: #1a1a2e; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; border-right: 1px solid #2a2a4a; }
+#sidebar h2 { font-size: 18px; color: #76B7B2; margin-bottom: 4px; }
+#sidebar h3 { font-size: 14px; color: #9ca3af; margin-bottom: 8px; }
+.nav-link { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 8px; border-radius: 4px; color: #e0e0e0; text-decoration: none; }
+.nav-link:hover { background: #2a2a4a; }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+#graph-container { flex: 1; position: relative; }
+#info { background: #0f0f1a; border-radius: 8px; padding: 12px; font-size: 13px; color: #9ca3af; }
+</style>
+</head>
+<body>
+<div id="sidebar">
+    <div>
+        <h2>🧠 Overview</h2>
+        <p style="font-size:12px;color:#666;">Each node is a community. Click to view details.</p>
+    </div>
+    <div id="info">88 nodes, 99 edges, 14 communities</div>
+    <div>
+        <h3>Communities</h3>
+        <a href="community_0.html" class="nav-link"><span class="legend-dot" style="background:#4E79A7"></span>TreeNode (18)</a><a href="community_1.html" class="nav-link"><span class="legend-dot" style="background:#F28E2B"></span>run_graphify_build() (9)</a><a href="community_2.html" class="nav-link"><span class="legend-dot" style="background:#E15759"></span>ClickTool (7)</a><a href="community_3.html" class="nav-link"><span class="legend-dot" style="background:#76B7B2"></span>SafeUIElement (7)</a><a href="community_4.html" class="nav-link"><span class="legend-dot" style="background:#59A14F"></span>Tool (7)</a><a href="community_5.html" class="nav-link"><span class="legend-dot" style="background:#EDC948"></span>ExecutionContext (7)</a><a href="community_6.html" class="nav-link"><span class="legend-dot" style="background:#B07AA1"></span>click (6)</a><a href="community_7.html" class="nav-link"><span class="legend-dot" style="background:#FF9DA7"></span>context (5)</a><a href="community_8.html" class="nav-link"><span class="legend-dot" style="background:#9C755F"></span>is_binary_extension() (5)</a><a href="community_9.html" class="nav-link"><span class="legend-dot" style="background:#BAB0AC"></span>.try_as_string() (5)</a><a href="community_10.html" class="nav-link"><span class="legend-dot" style="background:#4E79A7"></span>lib (4)</a><a href="community_11.html" class="nav-link"><span class="legend-dot" style="background:#F28E2B"></span>SmithError (3)</a><a href="community_12.html" class="nav-link"><span class="legend-dot" style="background:#E15759"></span>lib (12) (3)</a><a href="community_13.html" class="nav-link"><span class="legend-dot" style="background:#76B7B2"></span>mod (2)</a>
+    </div>
+</div>
+<div id="graph-container"></div>
+<script>
+(function() {
+    var nodesData = [{id:1,label:"run_graphify_build() (9)",title:"run_graphify_build() (9 nodes)\\nClick to view details",color:"#F28E2B",size:35.0,url:"community_1.html"},{id:9,label:".try_as_string() (5)",title:".try_as_string() (5 nodes)\\nClick to view details",color:"#BAB0AC",size:31.2,url:"community_9.html"},{id:10,label:"lib (4)",title:"lib (4 nodes)\\nClick to view details",color:"#4E79A7",size:30.0,url:"community_10.html"},{id:2,label:"ClickTool (7)",title:"ClickTool (7 nodes)\\nClick to view details",color:"#E15759",size:33.2,url:"community_2.html"},{id:3,label:"SafeUIElement (7)",title:"SafeUIElement (7 nodes)\\nClick to view details",color:"#76B7B2",size:33.2,url:"community_3.html"},{id:11,label:"SmithError (3)",title:"SmithError (3 nodes)\\nClick to view details",color:"#F28E2B",size:28.7,url:"community_11.html"},{id:12,label:"lib (12) (3)",title:"lib (12) (3 nodes)\\nClick to view details",color:"#E15759",size:28.7,url:"community_12.html"},{id:13,label:"mod (2)",title:"mod (2 nodes)\\nClick to view details",color:"#76B7B2",size:27.1,url:"community_13.html"},{id:5,label:"ExecutionContext (7)",title:"ExecutionContext (7 nodes)\\nClick to view details",color:"#EDC948",size:33.2,url:"community_5.html"},{id:8,label:"is_binary_extension() (5)",title:"is_binary_extension() (5 nodes)\\nClick to view details",color:"#9C755F",size:31.2,url:"community_8.html"},{id:0,label:"TreeNode (18)",title:"TreeNode (18 nodes)\\nClick to view details",color:"#4E79A7",size:41.2,url:"community_0.html"},{id:4,label:"Tool (7)",title:"Tool (7 nodes)\\nClick to view details",color:"#59A14F",size:33.2,url:"community_4.html"},{id:6,label:"click (6)",title:"click (6 nodes)\\nClick to view details",color:"#B07AA1",size:32.2,url:"community_6.html"},{id:7,label:"context (5)",title:"context (5 nodes)\\nClick to view details",color:"#FF9DA7",size:31.2,url:"community_7.html"}];
+    var edgesData = [{from:0,to:1,label:"11",width:4.3,title:"11 cross-community edges"},{from:0,to:8,label:"5",width:3.2,title:"5 cross-community edges"},{from:1,to:8,label:"1",width:2.0,title:"1 cross-community edges"},{from:7,to:9,label:"1",width:2.0,title:"1 cross-community edges"},{from:5,to:7,label:"1",width:2.0,title:"1 cross-community edges"},{from:2,to:6,label:"1",width:2.0,title:"1 cross-community edges"}];
+    var container = document.getElementById('graph-container');
+    var nodes = new vis.DataSet(nodesData);
+    var edges = new vis.DataSet(edgesData);
+    var options = {
+        physics: {
+            solver: 'forceAtlas2Based',
+            forceAtlas2Based: { gravitationalConstant: -100, centralGravity: 0.01, springLength: 200, springConstant: 0.05, damping: 0.4 },
+            stabilization: { iterations: 100 }
+        },
+        nodes: { shape: 'dot', font: { color: '#e0e0e0', size: 14, multi: true }, borderWidth: 2 },
+        edges: { color: { color: '#4a4a6a' }, font: { color: '#888', size: 12 }, smooth: { type: 'continuous' } },
+        interaction: { hover: true, zoomView: true, dragView: true }
+    };
+    var network = new vis.Network(container, { nodes: nodes, edges: edges }, options);
+    network.on('stabilizationIterationsDone', function() { network.setOptions({ physics: { enabled: false } }); });
+    network.on('doubleClick', function(params) {
+        if (params.nodes.length > 0) {
+            var node = nodes.get(params.nodes[0]);
+            if (node && node.url) { window.location.href = node.url; }
+        }
+    });
+})();
+</script>
+</body>
+</html>

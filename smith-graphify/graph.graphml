@@ -1,0 +1,1137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="label" for="node" attr.name="label" attr.type="string"/>
+  <key id="node_type" for="node" attr.name="node_type" attr.type="string"/>
+  <key id="source_file" for="node" attr.name="source_file" attr.type="string"/>
+  <key id="community" for="node" attr.name="community" attr.type="int"/>
+  <key id="relation" for="edge" attr.name="relation" attr.type="string"/>
+  <key id="confidence" for="edge" attr.name="confidence" attr.type="string"/>
+  <key id="confidence_score" for="edge" attr.name="confidence_score" attr.type="double"/>
+  <key id="weight" for="edge" attr.name="weight" attr.type="double"/>
+  <graph id="G" edgedefault="undirected">
+    <node id="crates_smith_core_src_error_rs">
+      <data key="label">error</data>
+      <data key="node_type">File</data>
+      <data key="source_file">./crates/smith-core/src/error.rs</data>
+      <data key="community">11</data>
+    </node>
+    <node id="crates_smith_core_src_error_rs_import_thiserror_error">
+      <data key="label">thiserror::Error</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/error.rs</data>
+      <data key="community">11</data>
+    </node>
+    <node id="crates_smith_core_src_error_rs_smitherror">
+      <data key="label">SmithError</data>
+      <data key="node_type">Enum</data>
+      <data key="source_file">./crates/smith-core/src/error.rs</data>
+      <data key="community">11</data>
+    </node>
+    <node id="crates_smith_core_src_lib_rs">
+      <data key="label">lib</data>
+      <data key="node_type">File</data>
+      <data key="source_file">./crates/smith-core/src/lib.rs</data>
+      <data key="community">10</data>
+    </node>
+    <node id="crates_smith_core_src_lib_rs_import_pub_use_context_contextvalue_executioncontext">
+      <data key="label">pub use context::{ContextValue, ExecutionContext}</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/lib.rs</data>
+      <data key="community">10</data>
+    </node>
+    <node id="crates_smith_core_src_lib_rs_import_pub_use_error_smitherror_smithresult">
+      <data key="label">pub use error::{SmithError, SmithResult}</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/lib.rs</data>
+      <data key="community">10</data>
+    </node>
+    <node id="crates_smith_core_src_lib_rs_import_pub_use_tool_tool_toolconfig_toolresult">
+      <data key="label">pub use tool::{Tool, ToolConfig, ToolResult}</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/lib.rs</data>
+      <data key="community">10</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs">
+      <data key="label">context</data>
+      <data key="node_type">File</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">7</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_import_std_any_any">
+      <data key="label">std::any::Any</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">7</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_import_std_collections_hashmap">
+      <data key="label">std::collections::HashMap</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">7</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_import_std_sync_arc">
+      <data key="label">std::sync::Arc</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">7</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_import_crate_error_smitherror_smithresult">
+      <data key="label">crate::error::{SmithError, SmithResult}</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">7</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_contextvalue">
+      <data key="label">ContextValue</data>
+      <data key="node_type">Enum</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">9</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_contextvalue_try_as_string">
+      <data key="label">.try_as_string()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">9</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_contextvalue_try_as_number">
+      <data key="label">.try_as_number()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">9</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_contextvalue_try_as_boolean">
+      <data key="label">.try_as_boolean()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">9</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_contextvalue_try_as_custom">
+      <data key="label">.try_as_custom()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">9</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_executioncontext">
+      <data key="label">ExecutionContext</data>
+      <data key="node_type">Struct</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">5</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_executioncontext_new">
+      <data key="label">.new()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">5</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_executioncontext_push_scope">
+      <data key="label">.push_scope()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">5</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_executioncontext_pop_scope">
+      <data key="label">.pop_scope()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">5</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_executioncontext_set">
+      <data key="label">.set()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">5</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_executioncontext_get">
+      <data key="label">.get()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">5</data>
+    </node>
+    <node id="crates_smith_core_src_context_rs_executioncontext_default">
+      <data key="label">.default()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-core/src/context.rs</data>
+      <data key="community">5</data>
+    </node>
+    <node id="crates_smith_core_src_tool_rs">
+      <data key="label">tool</data>
+      <data key="node_type">File</data>
+      <data key="source_file">./crates/smith-core/src/tool.rs</data>
+      <data key="community">4</data>
+    </node>
+    <node id="crates_smith_core_src_tool_rs_import_async_trait_async_trait">
+      <data key="label">async_trait::async_trait</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/tool.rs</data>
+      <data key="community">4</data>
+    </node>
+    <node id="crates_smith_core_src_tool_rs_import_serde_json_value">
+      <data key="label">serde_json::Value</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/tool.rs</data>
+      <data key="community">4</data>
+    </node>
+    <node id="crates_smith_core_src_tool_rs_import_tokio_util_sync_cancellationtoken">
+      <data key="label">tokio_util::sync::CancellationToken</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/tool.rs</data>
+      <data key="community">4</data>
+    </node>
+    <node id="crates_smith_core_src_tool_rs_import_crate_context_executioncontext">
+      <data key="label">crate::context::ExecutionContext</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/tool.rs</data>
+      <data key="community">4</data>
+    </node>
+    <node id="crates_smith_core_src_tool_rs_import_crate_error_smithresult">
+      <data key="label">crate::error::SmithResult</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-core/src/tool.rs</data>
+      <data key="community">4</data>
+    </node>
+    <node id="crates_smith_core_src_tool_rs_tool">
+      <data key="label">Tool</data>
+      <data key="node_type">Trait</data>
+      <data key="source_file">./crates/smith-core/src/tool.rs</data>
+      <data key="community">4</data>
+    </node>
+    <node id="crates_smith_windows_src_lib_rs">
+      <data key="label">lib</data>
+      <data key="node_type">File</data>
+      <data key="source_file">./crates/smith-windows/src/lib.rs</data>
+      <data key="community">12</data>
+    </node>
+    <node id="crates_smith_windows_src_lib_rs_import_pub_use_element_safeuielement">
+      <data key="label">pub use element::SafeUIElement</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-windows/src/lib.rs</data>
+      <data key="community">12</data>
+    </node>
+    <node id="crates_smith_windows_src_lib_rs_import_pub_use_tools_clicktool">
+      <data key="label">pub use tools::ClickTool</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-windows/src/lib.rs</data>
+      <data key="community">12</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_mod_rs">
+      <data key="label">mod</data>
+      <data key="node_type">File</data>
+      <data key="source_file">./crates/smith-windows/src/tools/mod.rs</data>
+      <data key="community">13</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_mod_rs_import_pub_use_click_clicktool">
+      <data key="label">pub use click::ClickTool</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-windows/src/tools/mod.rs</data>
+      <data key="community">13</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs">
+      <data key="label">click</data>
+      <data key="node_type">File</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">6</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs_import_async_trait_async_trait">
+      <data key="label">async_trait::async_trait</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">6</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs_import_serde_json_value_json">
+      <data key="label">serde_json::{Value, json}</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">6</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs_import_smith_core_executioncontext_smitherror_smithresult_tool_toolconfig_toolresult">
+      <data key="label">smith_core::{ExecutionContext, SmithError, SmithResult, Tool, ToolConfig, ToolResult}</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">6</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs_import_tokio_util_sync_cancellationtoken">
+      <data key="label">tokio_util::sync::CancellationToken</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">6</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs_import_crate_element_safeuielement">
+      <data key="label">crate::element::SafeUIElement</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">6</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs_clicktool">
+      <data key="label">ClickTool</data>
+      <data key="node_type">Struct</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">2</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs_clicktool_new">
+      <data key="label">.new()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">2</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs_clicktool_default">
+      <data key="label">.default()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">2</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs_clicktool_name">
+      <data key="label">.name()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">2</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs_clicktool_description">
+      <data key="label">.description()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">2</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs_clicktool_schema">
+      <data key="label">.schema()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">2</data>
+    </node>
+    <node id="crates_smith_windows_src_tools_click_rs_clicktool_execute">
+      <data key="label">.execute()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-windows/src/tools/click.rs</data>
+      <data key="community">2</data>
+    </node>
+    <node id="crates_smith_windows_src_element_rs">
+      <data key="label">element</data>
+      <data key="node_type">File</data>
+      <data key="source_file">./crates/smith-windows/src/element.rs</data>
+      <data key="community">3</data>
+    </node>
+    <node id="crates_smith_windows_src_element_rs_import_std_sync_arc">
+      <data key="label">std::sync::Arc</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-windows/src/element.rs</data>
+      <data key="community">3</data>
+    </node>
+    <node id="crates_smith_windows_src_element_rs_import_uiautomation_uielement">
+      <data key="label">uiautomation::UIElement</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./crates/smith-windows/src/element.rs</data>
+      <data key="community">3</data>
+    </node>
+    <node id="crates_smith_windows_src_element_rs_safeuielement">
+      <data key="label">SafeUIElement</data>
+      <data key="node_type">Struct</data>
+      <data key="source_file">./crates/smith-windows/src/element.rs</data>
+      <data key="community">3</data>
+    </node>
+    <node id="crates_smith_windows_src_element_rs_safeuielement_new">
+      <data key="label">.new()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-windows/src/element.rs</data>
+      <data key="community">3</data>
+    </node>
+    <node id="crates_smith_windows_src_element_rs_safeuielement_inner">
+      <data key="label">.inner()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-windows/src/element.rs</data>
+      <data key="community">3</data>
+    </node>
+    <node id="crates_smith_windows_src_element_rs_safeuielement_clone">
+      <data key="label">.clone()</data>
+      <data key="node_type">Method</data>
+      <data key="source_file">./crates/smith-windows/src/element.rs</data>
+      <data key="community">3</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs">
+      <data key="label">main</data>
+      <data key="node_type">File</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_import_anyhow_result">
+      <data key="label">anyhow::Result</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_import_chrono_local">
+      <data key="label">chrono::Local</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_import_clap_parser">
+      <data key="label">clap::Parser</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_import_ignore_gitignore_gitignorebuilder">
+      <data key="label">ignore::gitignore::GitignoreBuilder</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_import_std_collections_btreemap_hashmap">
+      <data key="label">std::collections::{BTreeMap, HashMap}</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_import_std_path_path_pathbuf">
+      <data key="label">std::path::{Path, PathBuf}</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_import_walkdir_walkdir">
+      <data key="label">walkdir::WalkDir</data>
+      <data key="node_type">Module</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_cli">
+      <data key="label">Cli</data>
+      <data key="node_type">Struct</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_graphifyartifacts">
+      <data key="label">GraphifyArtifacts</data>
+      <data key="node_type">Struct</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_fileentry">
+      <data key="label">FileEntry</data>
+      <data key="node_type">Struct</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_projectstats">
+      <data key="label">ProjectStats</data>
+      <data key="node_type">Struct</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_treenode">
+      <data key="label">TreeNode</data>
+      <data key="node_type">Struct</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_markdowncontext">
+      <data key="label">MarkdownContext</data>
+      <data key="node_type">Struct</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_main">
+      <data key="label">main()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">1</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_is_always_excluded_file">
+      <data key="label">is_always_excluded_file()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">8</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_is_always_excluded_dir">
+      <data key="label">is_always_excluded_dir()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">8</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_collect_files">
+      <data key="label">collect_files()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">8</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_detect_language">
+      <data key="label">detect_language()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">8</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_is_binary_extension">
+      <data key="label">is_binary_extension()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">8</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_build_tree">
+      <data key="label">build_tree()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_render_tree">
+      <data key="label">render_tree()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_build_stats">
+      <data key="label">build_stats()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_extract_crate_name">
+      <data key="label">extract_crate_name()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">0</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_collect_todos">
+      <data key="label">collect_todos()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">1</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_load_graphify_artifacts">
+      <data key="label">load_graphify_artifacts()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">1</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_run_graphify_build">
+      <data key="label">run_graphify_build()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">1</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_build_graph">
+      <data key="label">build_graph()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">1</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_build_git_log">
+      <data key="label">build_git_log()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">1</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_build_env_info">
+      <data key="label">build_env_info()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">1</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_read_workspace_cargo">
+      <data key="label">read_workspace_cargo()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">1</data>
+    </node>
+    <node id="apps_smith_context_src_main_rs_format_markdown">
+      <data key="label">format_markdown()</data>
+      <data key="node_type">Function</data>
+      <data key="source_file">./apps/smith-context/src/main.rs</data>
+      <data key="community">1</data>
+    </node>
+    <edge id="e0" source="crates_smith_core_src_error_rs" target="crates_smith_core_src_error_rs_import_thiserror_error">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e1" source="crates_smith_core_src_error_rs" target="crates_smith_core_src_error_rs_smitherror">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e2" source="crates_smith_core_src_lib_rs" target="crates_smith_core_src_lib_rs_import_pub_use_context_contextvalue_executioncontext">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e3" source="crates_smith_core_src_lib_rs" target="crates_smith_core_src_lib_rs_import_pub_use_error_smitherror_smithresult">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e4" source="crates_smith_core_src_lib_rs" target="crates_smith_core_src_lib_rs_import_pub_use_tool_tool_toolconfig_toolresult">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e5" source="crates_smith_core_src_context_rs" target="crates_smith_core_src_context_rs_import_std_any_any">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e6" source="crates_smith_core_src_context_rs" target="crates_smith_core_src_context_rs_import_std_collections_hashmap">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e7" source="crates_smith_core_src_context_rs" target="crates_smith_core_src_context_rs_import_std_sync_arc">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e8" source="crates_smith_core_src_context_rs" target="crates_smith_core_src_context_rs_import_crate_error_smitherror_smithresult">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e9" source="crates_smith_core_src_context_rs" target="crates_smith_core_src_context_rs_contextvalue">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e10" source="crates_smith_core_src_context_rs_contextvalue" target="crates_smith_core_src_context_rs_contextvalue_try_as_string">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e11" source="crates_smith_core_src_context_rs_contextvalue" target="crates_smith_core_src_context_rs_contextvalue_try_as_number">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e12" source="crates_smith_core_src_context_rs_contextvalue" target="crates_smith_core_src_context_rs_contextvalue_try_as_boolean">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e13" source="crates_smith_core_src_context_rs_contextvalue" target="crates_smith_core_src_context_rs_contextvalue_try_as_custom">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e14" source="crates_smith_core_src_context_rs" target="crates_smith_core_src_context_rs_executioncontext">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e15" source="crates_smith_core_src_context_rs_executioncontext" target="crates_smith_core_src_context_rs_executioncontext_new">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e16" source="crates_smith_core_src_context_rs_executioncontext" target="crates_smith_core_src_context_rs_executioncontext_push_scope">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e17" source="crates_smith_core_src_context_rs_executioncontext" target="crates_smith_core_src_context_rs_executioncontext_pop_scope">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e18" source="crates_smith_core_src_context_rs_executioncontext" target="crates_smith_core_src_context_rs_executioncontext_set">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e19" source="crates_smith_core_src_context_rs_executioncontext" target="crates_smith_core_src_context_rs_executioncontext_get">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e20" source="crates_smith_core_src_context_rs_executioncontext" target="crates_smith_core_src_context_rs_executioncontext_default">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e21" source="crates_smith_core_src_context_rs_executioncontext_push_scope" target="crates_smith_core_src_context_rs_executioncontext_new">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e22" source="crates_smith_core_src_context_rs_executioncontext_default" target="crates_smith_core_src_context_rs_executioncontext_new">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e23" source="crates_smith_core_src_tool_rs" target="crates_smith_core_src_tool_rs_import_async_trait_async_trait">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e24" source="crates_smith_core_src_tool_rs" target="crates_smith_core_src_tool_rs_import_serde_json_value">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e25" source="crates_smith_core_src_tool_rs" target="crates_smith_core_src_tool_rs_import_tokio_util_sync_cancellationtoken">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e26" source="crates_smith_core_src_tool_rs" target="crates_smith_core_src_tool_rs_import_crate_context_executioncontext">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e27" source="crates_smith_core_src_tool_rs" target="crates_smith_core_src_tool_rs_import_crate_error_smithresult">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e28" source="crates_smith_core_src_tool_rs" target="crates_smith_core_src_tool_rs_tool">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e29" source="crates_smith_windows_src_lib_rs" target="crates_smith_windows_src_lib_rs_import_pub_use_element_safeuielement">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e30" source="crates_smith_windows_src_lib_rs" target="crates_smith_windows_src_lib_rs_import_pub_use_tools_clicktool">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e31" source="crates_smith_windows_src_tools_mod_rs" target="crates_smith_windows_src_tools_mod_rs_import_pub_use_click_clicktool">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e32" source="crates_smith_windows_src_tools_click_rs" target="crates_smith_windows_src_tools_click_rs_import_async_trait_async_trait">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e33" source="crates_smith_windows_src_tools_click_rs" target="crates_smith_windows_src_tools_click_rs_import_serde_json_value_json">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e34" source="crates_smith_windows_src_tools_click_rs" target="crates_smith_windows_src_tools_click_rs_import_smith_core_executioncontext_smitherror_smithresult_tool_toolconfig_toolresult">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e35" source="crates_smith_windows_src_tools_click_rs" target="crates_smith_windows_src_tools_click_rs_import_tokio_util_sync_cancellationtoken">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e36" source="crates_smith_windows_src_tools_click_rs" target="crates_smith_windows_src_tools_click_rs_import_crate_element_safeuielement">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e37" source="crates_smith_windows_src_tools_click_rs" target="crates_smith_windows_src_tools_click_rs_clicktool">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e38" source="crates_smith_windows_src_tools_click_rs_clicktool" target="crates_smith_windows_src_tools_click_rs_clicktool_new">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e39" source="crates_smith_windows_src_tools_click_rs_clicktool" target="crates_smith_windows_src_tools_click_rs_clicktool_default">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e40" source="crates_smith_windows_src_tools_click_rs_clicktool" target="crates_smith_windows_src_tools_click_rs_clicktool_name">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e41" source="crates_smith_windows_src_tools_click_rs_clicktool" target="crates_smith_windows_src_tools_click_rs_clicktool_description">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e42" source="crates_smith_windows_src_tools_click_rs_clicktool" target="crates_smith_windows_src_tools_click_rs_clicktool_schema">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e43" source="crates_smith_windows_src_tools_click_rs_clicktool" target="crates_smith_windows_src_tools_click_rs_clicktool_execute">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e44" source="crates_smith_windows_src_tools_click_rs_clicktool_default" target="crates_smith_windows_src_tools_click_rs_clicktool_new">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e45" source="crates_smith_windows_src_element_rs" target="crates_smith_windows_src_element_rs_import_std_sync_arc">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e46" source="crates_smith_windows_src_element_rs" target="crates_smith_windows_src_element_rs_import_uiautomation_uielement">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e47" source="crates_smith_windows_src_element_rs" target="crates_smith_windows_src_element_rs_safeuielement">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e48" source="crates_smith_windows_src_element_rs_safeuielement" target="crates_smith_windows_src_element_rs_safeuielement_new">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e49" source="crates_smith_windows_src_element_rs_safeuielement" target="crates_smith_windows_src_element_rs_safeuielement_inner">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e50" source="crates_smith_windows_src_element_rs_safeuielement" target="crates_smith_windows_src_element_rs_safeuielement_clone">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e51" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_import_anyhow_result">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e52" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_import_chrono_local">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e53" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_import_clap_parser">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e54" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_import_ignore_gitignore_gitignorebuilder">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e55" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_import_std_collections_btreemap_hashmap">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e56" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_import_std_path_path_pathbuf">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e57" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_import_walkdir_walkdir">
+      <data key="relation">imports</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e58" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_cli">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e59" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_graphifyartifacts">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e60" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_fileentry">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e61" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_projectstats">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e62" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_treenode">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e63" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_markdowncontext">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e64" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_main">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e65" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_is_always_excluded_file">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e66" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_is_always_excluded_dir">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e67" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_collect_files">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e68" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_detect_language">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e69" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_is_binary_extension">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e70" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_build_tree">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e71" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_render_tree">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e72" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_build_stats">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e73" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_extract_crate_name">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e74" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_collect_todos">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e75" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_load_graphify_artifacts">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e76" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_run_graphify_build">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e77" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_build_graph">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e78" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_build_git_log">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e79" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_build_env_info">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e80" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_read_workspace_cargo">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e81" source="apps_smith_context_src_main_rs" target="apps_smith_context_src_main_rs_format_markdown">
+      <data key="relation">defines</data>
+      <data key="confidence">Extracted</data>
+      <data key="confidence_score">1</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e82" source="apps_smith_context_src_main_rs_main" target="apps_smith_context_src_main_rs_collect_files">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e83" source="apps_smith_context_src_main_rs_main" target="apps_smith_context_src_main_rs_build_tree">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e84" source="apps_smith_context_src_main_rs_main" target="apps_smith_context_src_main_rs_build_stats">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e85" source="apps_smith_context_src_main_rs_main" target="apps_smith_context_src_main_rs_collect_todos">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e86" source="apps_smith_context_src_main_rs_main" target="apps_smith_context_src_main_rs_build_graph">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e87" source="apps_smith_context_src_main_rs_main" target="apps_smith_context_src_main_rs_run_graphify_build">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e88" source="apps_smith_context_src_main_rs_main" target="apps_smith_context_src_main_rs_load_graphify_artifacts">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e89" source="apps_smith_context_src_main_rs_main" target="apps_smith_context_src_main_rs_build_git_log">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e90" source="apps_smith_context_src_main_rs_main" target="apps_smith_context_src_main_rs_build_env_info">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e91" source="apps_smith_context_src_main_rs_main" target="apps_smith_context_src_main_rs_read_workspace_cargo">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e92" source="apps_smith_context_src_main_rs_main" target="apps_smith_context_src_main_rs_format_markdown">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e93" source="apps_smith_context_src_main_rs_collect_files" target="apps_smith_context_src_main_rs_is_always_excluded_dir">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e94" source="apps_smith_context_src_main_rs_collect_files" target="apps_smith_context_src_main_rs_is_always_excluded_file">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e95" source="apps_smith_context_src_main_rs_collect_files" target="apps_smith_context_src_main_rs_is_binary_extension">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e96" source="apps_smith_context_src_main_rs_collect_files" target="apps_smith_context_src_main_rs_detect_language">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e97" source="apps_smith_context_src_main_rs_build_tree" target="apps_smith_context_src_main_rs_render_tree">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+    <edge id="e98" source="apps_smith_context_src_main_rs_build_stats" target="apps_smith_context_src_main_rs_extract_crate_name">
+      <data key="relation">calls</data>
+      <data key="confidence">Inferred</data>
+      <data key="confidence_score">0.7</data>
+      <data key="weight">1</data>
+    </edge>
+  </graph>
+</graphml>
