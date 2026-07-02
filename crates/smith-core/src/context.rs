@@ -121,3 +121,104 @@ impl Default for ExecutionContext {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_creates_empty_scope() {
+        let ctx = ExecutionContext::new();
+        assert!(ctx.get("any_key").is_none());
+    }
+
+    #[test]
+    fn test_set_and_get_variable() {
+        let mut ctx = ExecutionContext::new();
+        ctx.set("key1", ContextValue::String("value1".into()));
+        assert_eq!(
+            ctx.get("key1").and_then(|v| v.try_as_string().ok()),
+            Some("value1")
+        );
+    }
+
+    #[test]
+    fn test_get_returns_none_for_missing_key() {
+        let ctx = ExecutionContext::new();
+        assert!(ctx.get("nonexistent").is_none());
+    }
+
+    #[test]
+    fn test_push_scope_isolation() {
+        let mut ctx = ExecutionContext::new();
+        ctx.set("global", ContextValue::String("global_val".into()));
+
+        ctx.push_scope();
+        ctx.set("local", ContextValue::Number(42.0));
+
+        // Both visible in inner scope
+        assert_eq!(
+            ctx.get("global").and_then(|v| v.try_as_string().ok()),
+            Some("global_val")
+        );
+        assert_eq!(
+            ctx.get("local").and_then(|v| v.try_as_number().ok()),
+            Some(42.0)
+        );
+
+        ctx.pop_scope();
+
+        // After pop, local is gone, global remains
+        assert!(ctx.get("local").is_none());
+        assert_eq!(
+            ctx.get("global").and_then(|v| v.try_as_string().ok()),
+            Some("global_val")
+        );
+    }
+
+    #[test]
+    fn test_pop_scope_does_not_remove_global() {
+        let mut ctx = ExecutionContext::new();
+        ctx.set("key", ContextValue::String("val".into()));
+        ctx.pop_scope();
+        assert_eq!(
+            ctx.get("key").and_then(|v| v.try_as_string().ok()),
+            Some("val")
+        );
+    }
+
+    #[test]
+    fn test_context_value_try_as_string() {
+        let val = ContextValue::String("hello".into());
+        assert_eq!(val.try_as_string().ok(), Some("hello"));
+
+        let val = ContextValue::Number(42.0);
+        assert!(val.try_as_string().is_err());
+    }
+
+    #[test]
+    fn test_context_value_try_as_number() {
+        let val = ContextValue::Number(3.14);
+        assert!((val.try_as_number().ok().unwrap() - 3.14).abs() < f64::EPSILON);
+
+        let val = ContextValue::Boolean(true);
+        assert!(val.try_as_number().is_err());
+    }
+
+    #[test]
+    fn test_context_value_try_as_boolean() {
+        let val = ContextValue::Boolean(true);
+        assert_eq!(val.try_as_boolean().ok(), Some(true));
+
+        let val = ContextValue::Null;
+        assert!(val.try_as_boolean().is_err());
+    }
+
+    #[test]
+    fn test_context_value_null() {
+        let val = ContextValue::Null;
+        assert!(val.try_as_string().is_err());
+        assert!(val.try_as_number().is_err());
+        assert!(val.try_as_boolean().is_err());
+    }
+}

@@ -1,4 +1,5 @@
 # Project Rules
+
 ### Запросы к графу
 
 Для анализа архитектуры или поиска связей используй:
@@ -13,6 +14,7 @@ graphify-rs query "<вопрос>"
 ```bash
 cargo install graphify-rs
 ```
+
 ## graphify-rs
 
 Используй утилиту `graphify-rs` для построения графа знаний проекта.
@@ -56,3 +58,7 @@ graphify-rs query --graph ./smith-graphify/graph.json "что делает Execu
 ```bash
 cargo install graphify-rs
 ```
+
+## Excluded from context
+
+Директория `apps/smith-context` исключена из контекста. AI-агентам и инструментам анализа кода запрещено читать, анализировать или модифицировать файлы в `apps/smith-context`. Этот пакет является независимой утилитой для сбора контекста и не является частью основной кодовой базы автоматизации.

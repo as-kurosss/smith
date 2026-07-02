@@ -1,9 +1,9 @@
 [workspace]
 resolver = "2"
-members = ["apps/smith-context",
+members = [
+    "apps/smith-context",
     "crates/smith-core",
     "crates/smith-windows",
-    "apps/smith-context",
 ]
 
 [workspace.dependencies]
