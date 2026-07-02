@@ -17,6 +17,6 @@ pub use tools::FindTool;
 #[cfg(windows)]
 pub use tools::InputTextTool;
 #[cfg(windows)]
-pub use tools::SetTextTool;
-#[cfg(windows)]
 pub use tools::ProcessTool;
+#[cfg(windows)]
+pub use tools::SetTextTool;

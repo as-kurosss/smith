@@ -1,6 +1,6 @@
 // crates/smith-windows/src/tools/input_text.rs
 use async_trait::async_trait;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use smith_core::{ExecutionContext, SmithError, SmithResult, Tool, ToolConfig, ToolResult};
 use tokio_util::sync::CancellationToken;
 
@@ -89,43 +89,42 @@ impl Tool for InputTextTool {
         }
 
         // 2. Пытаемся получить элемент из контекста или найти по селектору
-        let maybe_element: Option<SafeUIElement> = if let Some(element_key) =
-            config.get("element_key").and_then(|v| v.as_str())
-        {
-            // Извлекаем из контекста
-            let value = ctx.get(element_key).ok_or_else(|| {
-                SmithError::ContextError(format!("Key '{element_key}' not found in context"))
-            })?;
-            Some(value.try_as_custom::<SafeUIElement>()?.clone())
-        } else if config.get("name").is_some()
-            || config.get("automation_id").is_some()
-            || config.get("control_type").is_some()
-            || config.get("class_name").is_some()
-        {
-            // Строим селектор и ищем
-            let mut selector = ElementSelector::new();
-            if let Some(name) = config.get("name").and_then(|v| v.as_str()) {
-                selector = selector.name(name);
-            }
-            if let Some(aid) = config.get("automation_id").and_then(|v| v.as_str()) {
-                selector = selector.automation_id(aid);
-            }
-            if let Some(ct) = config.get("control_type").and_then(|v| v.as_str()) {
-                selector = selector.control_type(ct);
-            }
-            if let Some(cn) = config.get("class_name").and_then(|v| v.as_str()) {
-                selector = selector.class_name(cn);
-            }
+        let maybe_element: Option<SafeUIElement> =
+            if let Some(element_key) = config.get("element_key").and_then(|v| v.as_str()) {
+                // Извлекаем из контекста
+                let value = ctx.get(element_key).ok_or_else(|| {
+                    SmithError::ContextError(format!("Key '{element_key}' not found in context"))
+                })?;
+                Some(value.try_as_custom::<SafeUIElement>()?.clone())
+            } else if config.get("name").is_some()
+                || config.get("automation_id").is_some()
+                || config.get("control_type").is_some()
+                || config.get("class_name").is_some()
+            {
+                // Строим селектор и ищем
+                let mut selector = ElementSelector::new();
+                if let Some(name) = config.get("name").and_then(|v| v.as_str()) {
+                    selector = selector.name(name);
+                }
+                if let Some(aid) = config.get("automation_id").and_then(|v| v.as_str()) {
+                    selector = selector.automation_id(aid);
+                }
+                if let Some(ct) = config.get("control_type").and_then(|v| v.as_str()) {
+                    selector = selector.control_type(ct);
+                }
+                if let Some(cn) = config.get("class_name").and_then(|v| v.as_str()) {
+                    selector = selector.class_name(cn);
+                }
 
-            let element = tokio::task::spawn_blocking(move || selector.find_from_desktop())
-                .await
-                .map_err(|e| SmithError::PlatformError(format!("Blocking task join: {e}")))?
-                .map_err(|e| SmithError::PlatformError(format!("Find element: {e}")))?;
+                let element = tokio::task::spawn_blocking(move || selector.find_from_desktop())
+                    .await
+                    .map_err(|e| SmithError::PlatformError(format!("Blocking task join: {e}")))?
+                    .map_err(|e| SmithError::PlatformError(format!("Find element: {e}")))?;
 
-            Some(SafeUIElement::new(element))
-        } else {
-            None
-        };
+                Some(SafeUIElement::new(element))
+            } else {
+                None
+            };
 
         // 3. Ввод текста в блокирующем потоке
         tokio::task::spawn_blocking(move || {

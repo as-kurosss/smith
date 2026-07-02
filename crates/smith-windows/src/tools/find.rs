@@ -1,6 +1,6 @@
 // crates/smith-windows/src/tools/find.rs
 use async_trait::async_trait;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use smith_core::{ExecutionContext, SmithError, SmithResult, Tool, ToolConfig, ToolResult};
 use tokio_util::sync::CancellationToken;
 
@@ -114,7 +114,10 @@ impl Tool for FindTool {
 
         // 5. Сохраняем результат в контекст
         let safe_element = SafeUIElement::new(element);
-        ctx.set(output_key.to_string(), smith_core::ContextValue::Custom(std::sync::Arc::new(safe_element)));
+        ctx.set(
+            output_key.to_string(),
+            smith_core::ContextValue::Custom(std::sync::Arc::new(safe_element)),
+        );
 
         Ok(json!({ "status": "found" }))
     }

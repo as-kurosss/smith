@@ -1,6 +1,6 @@
 // crates/smith-windows/src/tools/process.rs
 use async_trait::async_trait;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use smith_core::{ExecutionContext, SmithError, SmithResult, Tool, ToolConfig, ToolResult};
 use tokio_util::sync::CancellationToken;
 
@@ -191,10 +191,7 @@ fn action_list() -> SmithResult<ToolResult> {
             continue;
         }
         // Remove outer quotes and split by "," (keeping quoted values together)
-        let parts: Vec<&str> = line
-            .split(',')
-            .map(|s| s.trim_matches('"'))
-            .collect();
+        let parts: Vec<&str> = line.split(',').map(|s| s.trim_matches('"')).collect();
 
         if parts.len() >= 2 {
             let name = parts[0].to_string();
