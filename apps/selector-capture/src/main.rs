@@ -25,7 +25,11 @@ compile_error!("selector-capture requires a Windows compilation target");
 // ── CLI ───────────────────────────────────────────────────
 
 #[derive(Parser)]
-#[command(name = "selector-capture", version, about = "Capture Windows UI element selectors via hotkey")]
+#[command(
+    name = "selector-capture",
+    version,
+    about = "Capture Windows UI element selectors via hotkey"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -58,7 +62,10 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Single { description, output } => {
+        Commands::Single {
+            description,
+            output,
+        } => {
             recorder::run_single_mode(&output, description)?;
         }
         Commands::Series { output } => {

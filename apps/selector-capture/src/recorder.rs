@@ -17,7 +17,7 @@ use rdev::{listen, EventType, Key};
 
 use crate::capture;
 use crate::types::{
-    Action, BestSelector, CapturedElement, Capture, CaptureOutput, SeriesRecording,
+    Action, BestSelector, Capture, CaptureOutput, CapturedElement, SeriesRecording,
 };
 
 // ──────────────────────────────────────────────────────────
@@ -309,21 +309,69 @@ fn append_capture(output: &str, new_cap: Capture) -> anyhow::Result<()> {
 fn is_printable_key(key: Key) -> bool {
     matches!(
         key,
-        Key::KeyA | Key::KeyB | Key::KeyC | Key::KeyD | Key::KeyE
-            | Key::KeyF | Key::KeyG | Key::KeyH | Key::KeyI | Key::KeyJ
-            | Key::KeyK | Key::KeyL | Key::KeyM | Key::KeyN | Key::KeyO
-            | Key::KeyP | Key::KeyQ | Key::KeyR | Key::KeyS | Key::KeyT
-            | Key::KeyU | Key::KeyV | Key::KeyW | Key::KeyX | Key::KeyY
+        Key::KeyA
+            | Key::KeyB
+            | Key::KeyC
+            | Key::KeyD
+            | Key::KeyE
+            | Key::KeyF
+            | Key::KeyG
+            | Key::KeyH
+            | Key::KeyI
+            | Key::KeyJ
+            | Key::KeyK
+            | Key::KeyL
+            | Key::KeyM
+            | Key::KeyN
+            | Key::KeyO
+            | Key::KeyP
+            | Key::KeyQ
+            | Key::KeyR
+            | Key::KeyS
+            | Key::KeyT
+            | Key::KeyU
+            | Key::KeyV
+            | Key::KeyW
+            | Key::KeyX
+            | Key::KeyY
             | Key::KeyZ
-            | Key::Num0 | Key::Num1 | Key::Num2 | Key::Num3 | Key::Num4
-            | Key::Num5 | Key::Num6 | Key::Num7 | Key::Num8 | Key::Num9
-            | Key::Minus | Key::Equal | Key::LeftBracket | Key::RightBracket
-            | Key::SemiColon | Key::Quote | Key::Comma | Key::Dot
-            | Key::Slash | Key::BackSlash | Key::BackQuote
-            | Key::Space | Key::Return
-            | Key::Kp0 | Key::Kp1 | Key::Kp2 | Key::Kp3 | Key::Kp4
-            | Key::Kp5 | Key::Kp6 | Key::Kp7 | Key::Kp8 | Key::Kp9
-            | Key::KpPlus | Key::KpMinus | Key::KpMultiply
-            | Key::KpDivide | Key::KpReturn
+            | Key::Num0
+            | Key::Num1
+            | Key::Num2
+            | Key::Num3
+            | Key::Num4
+            | Key::Num5
+            | Key::Num6
+            | Key::Num7
+            | Key::Num8
+            | Key::Num9
+            | Key::Minus
+            | Key::Equal
+            | Key::LeftBracket
+            | Key::RightBracket
+            | Key::SemiColon
+            | Key::Quote
+            | Key::Comma
+            | Key::Dot
+            | Key::Slash
+            | Key::BackSlash
+            | Key::BackQuote
+            | Key::Space
+            | Key::Return
+            | Key::Kp0
+            | Key::Kp1
+            | Key::Kp2
+            | Key::Kp3
+            | Key::Kp4
+            | Key::Kp5
+            | Key::Kp6
+            | Key::Kp7
+            | Key::Kp8
+            | Key::Kp9
+            | Key::KpPlus
+            | Key::KpMinus
+            | Key::KpMultiply
+            | Key::KpDivide
+            | Key::KpReturn
     )
 }

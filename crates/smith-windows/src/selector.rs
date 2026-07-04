@@ -94,19 +94,20 @@ impl ElementSelector {
         }
 
         if let Some(ref ct) = self.control_type
-            && let Some(ct_value) = parse_control_type(ct) {
-                let cond = automation
-                    .create_property_condition(
-                        UIProperty::ControlType,
-                        Variant::from(ct_value),
-                        Some(PropertyConditionFlags::None),
-                    )
+            && let Some(ct_value) = parse_control_type(ct)
+        {
+            let cond = automation
+                .create_property_condition(
+                    UIProperty::ControlType,
+                    Variant::from(ct_value),
+                    Some(PropertyConditionFlags::None),
+                )
                 .map_err(|e| SmithError::PlatformError {
                     message: "ControlType property condition failed".into(),
                     source: Box::new(e),
                 })?;
-                conditions.push(cond);
-            }
+            conditions.push(cond);
+        }
 
         if let Some(ref cn) = self.class_name {
             let cond = automation
@@ -149,15 +150,13 @@ impl ElementSelector {
         let mut iter = conditions.into_iter();
         // SAFETY: is_empty() checked above
         let first = iter.next().unwrap();
-        iter.fold(Ok(first), |acc, cond| {
-            acc.and_then(|cond_acc| {
-                automation
-                    .create_and_condition(cond_acc, cond)
-                    .map_err(|e| SmithError::PlatformError {
-                        message: "And condition creation failed".into(),
-                        source: Box::new(e),
-                    })
-            })
+        iter.try_fold(first, |cond_acc, cond| {
+            automation
+                .create_and_condition(cond_acc, cond)
+                .map_err(|e| SmithError::PlatformError {
+                    message: "And condition creation failed".into(),
+                    source: Box::new(e),
+                })
         })
     }
 
@@ -166,7 +165,11 @@ impl ElementSelector {
     /// # Errors
     ///
     /// Returns `SmithError::ElementNotFound` if no element matches.
-    pub fn find_first(&self, root: &UIElement, automation: &UIAutomation) -> Result<UIElement, SmithError> {
+    pub fn find_first(
+        &self,
+        root: &UIElement,
+        automation: &UIAutomation,
+    ) -> Result<UIElement, SmithError> {
         let condition = self.build_condition_with(automation)?;
         root.find_first(TreeScope::Descendants, &condition)
             .map_err(|_| SmithError::ElementNotFound)
@@ -177,7 +180,11 @@ impl ElementSelector {
     /// # Errors
     ///
     /// Returns `SmithError::PlatformError` if the UIA `find_all` call fails.
-    pub fn find_all(&self, root: &UIElement, automation: &UIAutomation) -> Result<Vec<UIElement>, SmithError> {
+    pub fn find_all(
+        &self,
+        root: &UIElement,
+        automation: &UIAutomation,
+    ) -> Result<Vec<UIElement>, SmithError> {
         let condition = self.build_condition_with(automation)?;
         root.find_all(TreeScope::Descendants, &condition)
             .map_err(|e| SmithError::PlatformError {
@@ -195,11 +202,10 @@ impl ElementSelector {
     ///
     /// Returns `SmithError::ElementNotFound` if no element matches.
     pub fn find_from_desktop(&self) -> Result<UIElement, SmithError> {
-        let automation = UIAutomation::new()
-            .map_err(|e| SmithError::PlatformError {
-                message: "UIAutomation init failed".into(),
-                source: Box::new(e),
-            })?;
+        let automation = UIAutomation::new().map_err(|e| SmithError::PlatformError {
+            message: "UIAutomation init failed".into(),
+            source: Box::new(e),
+        })?;
         let root = automation
             .get_root_element()
             .map_err(|e| SmithError::PlatformError {

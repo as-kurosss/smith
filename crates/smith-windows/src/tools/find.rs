@@ -112,9 +112,7 @@ impl Tool for FindTool {
         // 4. Поиск в блокирующем потоке (COM-вызовы).
         //    SafeUIElement создаётся внутри spawn_blocking, т.к. UIElement не является Send.
         let safe_element = tokio::task::spawn_blocking(move || {
-            selector
-                .find_from_desktop()
-                .map(SafeUIElement::new)
+            selector.find_from_desktop().map(SafeUIElement::new)
         })
         .await
         .map_err(|e| SmithError::PlatformError {

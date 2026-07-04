@@ -12,7 +12,7 @@ use rig::providers::anthropic;
 use rig::providers::openai;
 use rig::tool::ToolDyn;
 use serde_json::Value;
-use smith_workflow::{AiHandler, WorkflowError, WorkflowContext};
+use smith_workflow::{AiHandler, WorkflowContext, WorkflowError};
 use tokio_util::sync::CancellationToken;
 use tracing::{info, warn};
 
@@ -129,9 +129,7 @@ impl SmithAgentBuilder {
                     builder = builder.base_url(url);
                 }
                 let client = builder.build().map_err(|e| {
-                    WorkflowError::AgentError(format!(
-                        "Failed to create Anthropic client: {e}"
-                    ))
+                    WorkflowError::AgentError(format!("Failed to create Anthropic client: {e}"))
                 })?;
 
                 Box::new(
@@ -182,7 +180,9 @@ impl AiHandler for SmithAgent {
 
         // Quick heuristic: only try JSON parse if response looks like JSON
         let trimmed = result.trim_start();
-        if trimmed.starts_with('{') || trimmed.starts_with('[') {
+        let looks_like_json = trimmed.starts_with('{') || trimmed.starts_with('[');
+        #[allow(clippy::collapsible_if)]
+        if looks_like_json {
             if let Ok(val) = serde_json::from_str::<Value>(&result) {
                 return Ok(val);
             }
@@ -221,10 +221,10 @@ impl AiHandler for SmithAgent {
 
         // Quick heuristic: only try JSON parse if response looks like JSON
         let trimmed = result.trim_start();
-        if trimmed.starts_with('{') || trimmed.starts_with('[') {
-            if let Ok(val) = serde_json::from_str::<Value>(&result) {
-                return Ok(val);
-            }
+        if (trimmed.starts_with('{') || trimmed.starts_with('['))
+            && let Ok(val) = serde_json::from_str::<Value>(&result)
+        {
+            return Ok(val);
         }
 
         Ok(Value::String(result))
@@ -376,9 +376,7 @@ mod tests {
         let mut ctx = WorkflowContext::new();
         let token = CancellationToken::new();
 
-        let result = agent
-            .decide("choose", &[], &mut ctx, &token)
-            .await;
+        let result = agent.decide("choose", &[], &mut ctx, &token).await;
 
         assert!(matches!(result, Err(WorkflowError::ValidationError(_))));
     }

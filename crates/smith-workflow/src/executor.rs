@@ -155,9 +155,7 @@ impl<'a> WorkflowExecutor<'a> {
                 max_steps,
             } => {
                 ctx.agent_count += 1;
-                let handler = self
-                    .ai_handler
-                    .ok_or(WorkflowError::AgentNotConfigured)?;
+                let handler = self.ai_handler.ok_or(WorkflowError::AgentNotConfigured)?;
                 handler
                     .agent_run(prompt, tools, *max_steps, ctx, token)
                     .await
@@ -167,23 +165,16 @@ impl<'a> WorkflowExecutor<'a> {
                 output_schema,
             } => {
                 ctx.agent_count += 1;
-                let handler = self
-                    .ai_handler
-                    .ok_or(WorkflowError::AgentNotConfigured)?;
+                let handler = self.ai_handler.ok_or(WorkflowError::AgentNotConfigured)?;
                 handler.think(prompt, output_schema, ctx, token).await
             }
             StepKind::Decide { prompt, options } => {
                 ctx.agent_count += 1;
-                let handler = self
-                    .ai_handler
-                    .ok_or(WorkflowError::AgentNotConfigured)?;
+                let handler = self.ai_handler.ok_or(WorkflowError::AgentNotConfigured)?;
                 let choice = handler.decide(prompt, options, ctx, token).await?;
 
                 // Проверяем conditional routing
-                if let Some(sub) = choices
-                    .get(&ctx.current_step)
-                    .and_then(|c| c.get(&choice))
-                {
+                if let Some(sub) = choices.get(&ctx.current_step).and_then(|c| c.get(&choice)) {
                     let mut sub_ctx = ExecutionContext::new();
                     let sub_result =
                         Box::pin(self.execute(sub.clone(), &mut sub_ctx, token.clone())).await?;
@@ -246,8 +237,7 @@ impl<'a> WorkflowExecutor<'a> {
             return Err(WorkflowError::Cancelled);
         }
 
-        self
-            .registry
+        self.registry
             .execute(name, args.clone(), &mut ctx.inner, token.clone())
             .await
             .map_err(|e| WorkflowError::StepError {

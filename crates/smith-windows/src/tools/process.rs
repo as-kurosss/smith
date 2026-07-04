@@ -29,9 +29,7 @@ fn is_command_allowed(cmd: &str) -> bool {
     ]);
 
     // Extract the file name from the path
-    let name = cmd
-        .rsplit_once(['/', '\\'])
-        .map_or(cmd, |(_, file)| file);
+    let name = cmd.rsplit_once(['/', '\\']).map_or(cmd, |(_, file)| file);
 
     allowed.iter().any(|&a| a.eq_ignore_ascii_case(name))
 }
@@ -170,12 +168,10 @@ fn action_start(config: &Value) -> SmithResult<ToolResult> {
         cmd.current_dir(dir);
     }
 
-    let child = cmd
-        .spawn()
-        .map_err(|e| SmithError::PlatformError {
-            message: "Failed to start process".into(),
-            source: Box::new(e),
-        })?;
+    let child = cmd.spawn().map_err(|e| SmithError::PlatformError {
+        message: "Failed to start process".into(),
+        source: Box::new(e),
+    })?;
 
     let pid = child.id();
 
@@ -189,7 +185,9 @@ async fn action_sleep(config: Value) -> SmithResult<ToolResult> {
     let duration_ms = config
         .get("duration_ms")
         .and_then(|v| v.as_u64())
-        .ok_or_else(|| SmithError::InvalidParams("Missing 'duration_ms' for sleep action".into()))?;
+        .ok_or_else(|| {
+            SmithError::InvalidParams("Missing 'duration_ms' for sleep action".into())
+        })?;
 
     tokio::time::sleep(Duration::from_millis(duration_ms)).await;
 

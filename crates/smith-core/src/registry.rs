@@ -46,7 +46,8 @@ impl ToolRegistry {
         ctx: &mut ExecutionContext,
         token: CancellationToken,
     ) -> SmithResult<ToolResult> {
-        let tool = self.get(name)
+        let tool = self
+            .get(name)
             .ok_or_else(|| SmithError::InvalidParams(format!("Tool '{name}' not found")))?;
         tool.execute(config, ctx, token).await
     }

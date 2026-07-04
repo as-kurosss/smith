@@ -13,8 +13,8 @@
 //!     .build();
 //! ```
 
-use smith_workflow::Step;
 use serde_json::json;
+use smith_workflow::Step;
 
 /// Создаёт Step для поиска UI-элемента.
 ///

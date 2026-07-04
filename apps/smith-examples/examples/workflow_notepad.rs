@@ -14,14 +14,13 @@
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     use smith_ai::SmithAgent;
     use smith_core::{ExecutionContext, ToolRegistry};
+    use smith_windows::tools::{FindTool, ProcessTool, SetTextTool};
     use smith_workflow::prelude::*;
     use smith_workflow::{AiHandler, WorkflowExecutor};
-    use smith_windows::tools::{FindTool, SetTextTool, ProcessTool};
     use tokio_util::sync::CancellationToken;
 
     // -- API ключ --
-    let api_key =
-        std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
+    let api_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
 
     // -- Регистрируем RPA-инструменты --
     let mut registry = ToolRegistry::new();
@@ -46,15 +45,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         })))
         // RPA: найти поле ввода (с retry на случай, если окно ещё не готово)
         .step(
-            Step::rpa("windows.find").args(json!({
-                "class_name": "Edit",
-                "control_type": "Edit",
-                "output_key": "notepad_edit",
-            }))
-            .retry(RetryPolicy {
-                max_retries: 10,
-                delay_ms: 500,
-            }),
+            Step::rpa("windows.find")
+                .args(json!({
+                    "class_name": "Edit",
+                    "control_type": "Edit",
+                    "output_key": "notepad_edit",
+                }))
+                .retry(RetryPolicy {
+                    max_retries: 10,
+                    delay_ms: 500,
+                }),
         )
         // RPA: напечатать текст
         .step(Step::rpa("windows.set_text").args(json!({
@@ -74,8 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build();
 
     // -- Исполняем --
-    let executor =
-        WorkflowExecutor::new(&registry, Some(&ai_agent as &dyn AiHandler));
+    let executor = WorkflowExecutor::new(&registry, Some(&ai_agent as &dyn AiHandler));
     let mut ctx = ExecutionContext::new();
     let token = CancellationToken::new();
 

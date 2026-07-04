@@ -111,17 +111,19 @@ impl Tool for InputTextTool {
                     })?;
             } else {
                 // Просто вводим текст в активное окно через корневой элемент
-                let automation = uiautomation::core::UIAutomation::new()
-                    .map_err(|e| SmithError::PlatformError {
+                let automation = uiautomation::core::UIAutomation::new().map_err(|e| {
+                    SmithError::PlatformError {
                         message: "UIAutomation init failed".into(),
                         source: Box::new(e),
-                    })?;
-                let root = automation
-                    .get_root_element()
-                    .map_err(|e| SmithError::PlatformError {
-                        message: "Get root element failed".into(),
-                        source: Box::new(e),
-                    })?;
+                    }
+                })?;
+                let root =
+                    automation
+                        .get_root_element()
+                        .map_err(|e| SmithError::PlatformError {
+                            message: "Get root element failed".into(),
+                            source: Box::new(e),
+                        })?;
                 root.send_keys(&text, 0)
                     .map_err(|e| SmithError::PlatformError {
                         message: "send_keys failed".into(),

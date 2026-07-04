@@ -74,7 +74,11 @@ impl Step {
     /// Задаёт аргументы для RPA-шага.
     pub fn args(mut self, args: Value) -> Self {
         self.kind = match self.kind {
-            StepKind::Rpa { name, args: _, retry } => StepKind::Rpa { name, args, retry },
+            StepKind::Rpa {
+                name,
+                args: _,
+                retry,
+            } => StepKind::Rpa { name, args, retry },
             other => {
                 warn!("Step::args() called on non-RPA step, ignoring");
                 other
@@ -195,14 +199,12 @@ impl Step {
     /// Добавляет контекст к промпту Decide-шага.
     pub fn context(self, context: &str) -> Self {
         match self.kind {
-            StepKind::Decide { prompt, options } => {
-                Self {
-                    kind: StepKind::Decide {
-                        prompt: format!("{}\n\nContext: {}", prompt, context),
-                        options,
-                    },
-                }
-            }
+            StepKind::Decide { prompt, options } => Self {
+                kind: StepKind::Decide {
+                    prompt: format!("{}\n\nContext: {}", prompt, context),
+                    options,
+                },
+            },
             other => {
                 warn!("Step::context() called on non-Decide step, ignoring");
                 Self { kind: other }
@@ -213,10 +215,7 @@ impl Step {
     /// Задаёт варианты для Decide-шага.
     pub fn options(mut self, opts: &[&str]) -> Self {
         self.kind = match self.kind {
-            StepKind::Decide {
-                prompt,
-                options: _,
-            } => StepKind::Decide {
+            StepKind::Decide { prompt, options: _ } => StepKind::Decide {
                 prompt,
                 options: opts.iter().map(|&s| s.to_string()).collect(),
             },

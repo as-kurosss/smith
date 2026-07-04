@@ -120,7 +120,10 @@ mod tests {
         let config = ProviderConfig::openai("key").with_base_url("https://my-proxy.example.com/v1");
         match config {
             ProviderConfig::OpenAi { base_url, .. } => {
-                assert_eq!(base_url, Some("https://my-proxy.example.com/v1".to_string()));
+                assert_eq!(
+                    base_url,
+                    Some("https://my-proxy.example.com/v1".to_string())
+                );
             }
             _ => panic!("Expected OpenAi variant"),
         }

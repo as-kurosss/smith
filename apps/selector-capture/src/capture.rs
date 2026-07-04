@@ -68,9 +68,7 @@ pub fn capture_at_point(x: f64, y: f64) -> Result<(Vec<PathNode>, BestSelector),
 
 /// Reads stable attributes from a UIA element into a `PathNode`.
 fn read_node(element: &uiautomation::core::UIElement) -> PathNode {
-    let ct = element
-        .get_control_type()
-        .unwrap_or(ControlType::Custom);
+    let ct = element.get_control_type().unwrap_or(ControlType::Custom);
     let ct_name = format!("{ct:?}");
 
     PathNode {
@@ -115,7 +113,7 @@ pub(crate) fn build_best_selector(path: &[PathNode]) -> BestSelector {
         control_type: target.control_type.clone(),
         name: target.name.clone(),
         class_name: target.class_name.clone(),
-    automation_id: target.automation_id.clone(),
+        automation_id: target.automation_id.clone(),
     }
 }
 

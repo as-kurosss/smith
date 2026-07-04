@@ -17,13 +17,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     use rig::tool::ToolDyn;
     use smith_ai::{ProviderConfig, ToolAdapter};
     use smith_core::ExecutionContext;
-    use smith_windows::tools::{FindTool, SetTextTool, ProcessTool};
+    use smith_windows::tools::{FindTool, ProcessTool, SetTextTool};
     use tokio::sync::Mutex;
     use tokio_util::sync::CancellationToken;
 
     // -- API ключ --
-    let api_key =
-        std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
+    let api_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
 
     // -- ExecutionContext, разделяемый между инструментами --
     let ctx = Arc::new(Mutex::new(ExecutionContext::new()));

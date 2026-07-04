@@ -54,7 +54,10 @@ impl ToolDyn for ToolAdapter {
         self.inner.name().to_string()
     }
 
-    fn definition<'a>(&'a self, _prompt: String) -> Pin<Box<dyn Future<Output = ToolDefinition> + Send + 'a>> {
+    fn definition<'a>(
+        &'a self,
+        _prompt: String,
+    ) -> Pin<Box<dyn Future<Output = ToolDefinition> + Send + 'a>> {
         Box::pin(async move {
             ToolDefinition {
                 name: self.inner.name().to_string(),
@@ -64,7 +67,10 @@ impl ToolDyn for ToolAdapter {
         })
     }
 
-    fn call<'a>(&'a self, args: String) -> Pin<Box<dyn Future<Output = Result<String, ToolError>> + Send + 'a>> {
+    fn call<'a>(
+        &'a self,
+        args: String,
+    ) -> Pin<Box<dyn Future<Output = Result<String, ToolError>> + Send + 'a>> {
         Box::pin(async move {
             let config: ToolConfig = match serde_json::from_str(&args) {
                 Ok(c) => c,
@@ -73,7 +79,11 @@ impl ToolDyn for ToolAdapter {
 
             let mut ctx = self.ctx.lock().await;
 
-            match self.inner.execute(config, &mut ctx, self.token.clone()).await {
+            match self
+                .inner
+                .execute(config, &mut ctx, self.token.clone())
+                .await
+            {
                 Ok(result) => match serde_json::to_string(&result) {
                     Ok(s) => Ok(s),
                     Err(e) => Err(ToolError::JsonError(e)),

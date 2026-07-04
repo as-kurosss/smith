@@ -61,7 +61,10 @@ mod tests {
     fn test_platform_error_display() {
         let err = SmithError::PlatformError {
             message: "access denied".into(),
-            source: Box::new(std::io::Error::new(std::io::ErrorKind::PermissionDenied, "os error")),
+            source: Box::new(std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                "os error",
+            )),
         };
         assert_eq!(err.to_string(), "Platform error: access denied");
     }

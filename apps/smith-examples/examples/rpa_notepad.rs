@@ -12,9 +12,9 @@
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     use smith_core::{ExecutionContext, ToolRegistry};
-    use smith_workflow::prelude::*;
+    use smith_windows::tools::{FindTool, ProcessTool, SetTextTool};
     use smith_workflow::WorkflowExecutor;
-    use smith_windows::tools::{FindTool, SetTextTool, ProcessTool};
+    use smith_workflow::prelude::*;
     use tokio_util::sync::CancellationToken;
 
     // -- Регистрируем Windows-инструменты --
@@ -32,15 +32,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         })))
         // 2. Найти поле ввода (Edit) — с retry, т.к. окно может открываться не мгновенно
         .step(
-            Step::rpa("windows.find").args(json!({
-                "class_name": "Edit",
-                "control_type": "Edit",
-                "output_key": "notepad_edit",
-            }))
-            .retry(RetryPolicy {
-                max_retries: 10,
-                delay_ms: 500,
-            }),
+            Step::rpa("windows.find")
+                .args(json!({
+                    "class_name": "Edit",
+                    "control_type": "Edit",
+                    "output_key": "notepad_edit",
+                }))
+                .retry(RetryPolicy {
+                    max_retries: 10,
+                    delay_ms: 500,
+                }),
         )
         // 3. Напечатать текст через ValuePattern (быстрее, чем input_text)
         .step(Step::rpa("windows.set_text").args(json!({

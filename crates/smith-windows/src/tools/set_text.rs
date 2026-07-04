@@ -95,7 +95,9 @@ impl Tool for SetTextTool {
         // 2. Получаем элемент
         let element = crate::tools::resolve_element_from_config(&config, ctx)
             .await?
-            .ok_or_else(|| SmithError::InvalidParams("Missing 'element_key' or selector fields".into()))?;
+            .ok_or_else(|| {
+                SmithError::InvalidParams("Missing 'element_key' or selector fields".into())
+            })?;
 
         // 3. Устанавливаем текст через ValuePattern в блокирующем потоке
         tokio::task::spawn_blocking(move || {
