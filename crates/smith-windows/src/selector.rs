@@ -8,25 +8,13 @@ use smith_core::SmithError;
 /// Builder-style selector for finding Windows UI elements.
 ///
 /// Uses `uiautomation::Condition` combinators to build a query.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ElementSelector {
     pid: Option<u32>,
     name: Option<String>,
     automation_id: Option<String>,
     control_type: Option<String>,
     class_name: Option<String>,
-}
-
-impl Default for ElementSelector {
-    fn default() -> Self {
-        Self {
-            pid: None,
-            name: None,
-            automation_id: None,
-            control_type: None,
-            class_name: None,
-        }
-    }
 }
 
 impl ElementSelector {
@@ -105,12 +93,12 @@ impl ElementSelector {
             conditions.push(cond);
         }
 
-        if let Some(ref ct) = self.control_type {
-            if let Some(ct_value) = parse_control_type(ct) {
+        if let Some(ref ct) = self.control_type
+            && let Some(ct_value) = parse_control_type(ct) {
                 let cond = automation
                     .create_property_condition(
                         UIProperty::ControlType,
-                        Variant::from(ct_value as i32),
+                        Variant::from(ct_value),
                         Some(PropertyConditionFlags::None),
                     )
                 .map_err(|e| SmithError::PlatformError {
@@ -119,7 +107,6 @@ impl ElementSelector {
                 })?;
                 conditions.push(cond);
             }
-        }
 
         if let Some(ref cn) = self.class_name {
             let cond = automation
@@ -139,7 +126,7 @@ impl ElementSelector {
             let cond = automation
                 .create_property_condition(
                     UIProperty::ProcessId,
-                    Variant::from(pid as i32),
+                    Variant::from(pid.cast_signed()),
                     Some(PropertyConditionFlags::None),
                 )
                 .map_err(|e| SmithError::PlatformError {
@@ -158,19 +145,20 @@ impl ElementSelector {
                 });
         }
 
-        // SAFETY: conditions.is_empty() was checked above, so iter has at least one element.
+        // conditions.is_empty() checked above — guaranteed at least one element
         let mut iter = conditions.into_iter();
-        let first = iter.next().expect("conditions is non-empty at this point");
-        let result = iter.try_fold(first, |acc, cond| {
-            automation
-                .create_and_condition(acc, cond)
-                .map_err(|e| SmithError::PlatformError {
-                    message: "And condition creation failed".into(),
-                    source: Box::new(e),
-                })
-        })?;
-
-        Ok(result)
+        // SAFETY: is_empty() checked above
+        let first = iter.next().unwrap();
+        iter.fold(Ok(first), |acc, cond| {
+            acc.and_then(|cond_acc| {
+                automation
+                    .create_and_condition(cond_acc, cond)
+                    .map_err(|e| SmithError::PlatformError {
+                        message: "And condition creation failed".into(),
+                        source: Box::new(e),
+                    })
+            })
+        })
     }
 
     /// Finds the first matching element under `root`.
@@ -185,6 +173,10 @@ impl ElementSelector {
     }
 
     /// Finds all matching elements under `root`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `SmithError::PlatformError` if the UIA `find_all` call fails.
     pub fn find_all(&self, root: &UIElement, automation: &UIAutomation) -> Result<Vec<UIElement>, SmithError> {
         let condition = self.build_condition_with(automation)?;
         root.find_all(TreeScope::Descendants, &condition)

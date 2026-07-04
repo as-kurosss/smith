@@ -31,7 +31,7 @@ pub(crate) use self::helpers::resolve_element_from_config;
 
 #[cfg(windows)]
 mod helpers {
-    use super::*;
+    use super::{Value, ExecutionContext, SmithError, SmithResult};
     use crate::element::SafeUIElement;
     use crate::selector::ElementSelector;
 
@@ -47,7 +47,7 @@ mod helpers {
         // 1. Try to get element from context by element_key
         if let Some(element_key) = config.get("element_key").and_then(|v| v.as_str()) {
             let value = ctx.get(element_key).ok_or_else(|| {
-                SmithError::ContextError(format!("Key '{}' not found in context", element_key))
+                SmithError::ContextError(format!("Key '{element_key}' not found in context"))
             })?;
             return value.try_as_custom::<SafeUIElement>().map(|e| Some(e.clone()));
         }

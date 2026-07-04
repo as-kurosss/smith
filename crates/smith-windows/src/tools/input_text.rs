@@ -99,6 +99,8 @@ impl Tool for InputTextTool {
                         message: "Set focus failed".into(),
                         source: Box::new(e),
                     })?;
+                // Небольшая пауза после set_focus, чтобы UI Automation успел
+                // обработать фокус и обновить состояние элемента перед send_keys.
                 std::thread::sleep(std::time::Duration::from_millis(100));
                 element
                     .inner()

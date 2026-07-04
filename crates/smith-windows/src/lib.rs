@@ -1,22 +1,14 @@
 // crates/smith-windows/src/lib.rs
-pub mod tools;
 
 #[cfg(windows)]
 pub mod element;
 #[cfg(windows)]
 pub mod selector;
+pub mod tools;
 
 #[cfg(windows)]
-pub use element::SafeUIElement;
-#[cfg(windows)]
-pub use selector::ElementSelector;
-#[cfg(windows)]
-pub use tools::ClickTool;
-#[cfg(windows)]
-pub use tools::FindTool;
-#[cfg(windows)]
-pub use tools::InputTextTool;
-#[cfg(windows)]
-pub use tools::ProcessTool;
-#[cfg(windows)]
-pub use tools::SetTextTool;
+pub use {
+    element::SafeUIElement,
+    selector::ElementSelector,
+    tools::{ClickTool, FindTool, InputTextTool, ProcessTool, SetTextTool},
+};

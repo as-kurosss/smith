@@ -87,6 +87,6 @@ impl Tool for ClickTool {
             source: Box::new(e),
         })??;
 
-        Ok(Value::Null)
+        Ok(json!({ "status": "clicked" }))
     }
 }

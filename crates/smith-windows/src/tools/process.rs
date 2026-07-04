@@ -1,5 +1,6 @@
 // crates/smith-windows/src/tools/process.rs
 use std::collections::HashSet;
+use std::time::Duration;
 
 use async_trait::async_trait;
 use serde_json::{Value, json};
@@ -29,11 +30,10 @@ fn is_command_allowed(cmd: &str) -> bool {
 
     // Extract the file name from the path
     let name = cmd
-        .rsplit_once(|c| c == '/' || c == '\\')
-        .map(|(_, file)| file)
-        .unwrap_or(cmd);
+        .rsplit_once(['/', '\\'])
+        .map_or(cmd, |(_, file)| file);
 
-    allowed.contains(name.to_lowercase().as_str())
+    allowed.iter().any(|&a| a.eq_ignore_ascii_case(name))
 }
 
 /// Инструмент для управления процессами Windows.
@@ -41,6 +41,7 @@ fn is_command_allowed(cmd: &str) -> bool {
 /// Поддерживает действия:
 /// - `start` — запуск нового процесса (не ждёт завершения)
 /// - `stop` — остановка процесса по PID или имени (не ждёт завершения taskkill)
+/// - `sleep` — пауза на `duration_ms` миллисекунд
 pub struct ProcessTool;
 
 impl ProcessTool {
@@ -64,7 +65,7 @@ impl Tool for ProcessTool {
     }
 
     fn description(&self) -> &'static str {
-        "Manages Windows processes: start or stop (fire-and-forget)"
+        "Manages Windows processes: start, stop, or sleep"
     }
 
     fn schema(&self) -> Value {
@@ -73,7 +74,7 @@ impl Tool for ProcessTool {
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["start", "stop"],
+                    "enum": ["start", "stop", "sleep"],
                     "description": "Action to perform"
                 },
                 "command": {
@@ -96,6 +97,11 @@ impl Tool for ProcessTool {
                 "name": {
                     "type": "string",
                     "description": "Process image name to stop (e.g. notepad.exe)"
+                },
+                "duration_ms": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Sleep duration in milliseconds (required for sleep)"
                 }
             },
             "required": ["action"]
@@ -119,7 +125,16 @@ impl Tool for ProcessTool {
 
         match action {
             "start" => self::action_start(&config),
-            "stop" => self::action_stop(&config),
+            "stop" => {
+                let config = config.clone();
+                tokio::task::spawn_blocking(move || self::action_stop(&config))
+                    .await
+                    .map_err(|e| SmithError::PlatformError {
+                        message: "Blocking task join failed".into(),
+                        source: Box::new(e),
+                    })?
+            }
+            "sleep" => self::action_sleep(config).await,
             other => Err(SmithError::InvalidParams(format!(
                 "Unknown action: {other}"
             ))),
@@ -137,8 +152,7 @@ fn action_start(config: &Value) -> SmithResult<ToolResult> {
     // Command injection protection (Canon 10.1 Input Validation)
     if !is_command_allowed(cmd_str) {
         return Err(SmithError::InvalidParams(format!(
-            "Command '{}' is not in the allowed list",
-            cmd_str
+            "Command '{cmd_str}' is not in the allowed list",
         )));
     }
 
@@ -171,10 +185,24 @@ fn action_start(config: &Value) -> SmithResult<ToolResult> {
     }))
 }
 
+async fn action_sleep(config: Value) -> SmithResult<ToolResult> {
+    let duration_ms = config
+        .get("duration_ms")
+        .and_then(|v| v.as_u64())
+        .ok_or_else(|| SmithError::InvalidParams("Missing 'duration_ms' for sleep action".into()))?;
+
+    tokio::time::sleep(Duration::from_millis(duration_ms)).await;
+
+    Ok(json!({
+        "status": "slept",
+        "duration_ms": duration_ms
+    }))
+}
+
 fn action_stop(config: &Value) -> SmithResult<ToolResult> {
     use std::process::Stdio;
 
-    if let Some(pid) = config.get("pid").and_then(|v| v.as_u64()) {
+    if let Some(pid) = config.get("pid").and_then(serde_json::Value::as_u64) {
         let output = std::process::Command::new("taskkill")
             .args(["/F", "/PID", &pid.to_string()])
             .stdin(Stdio::null())
@@ -186,10 +214,13 @@ fn action_stop(config: &Value) -> SmithResult<ToolResult> {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            tracing::warn!("taskkill for pid {} failed: {}", pid, stderr);
+            return Err(SmithError::PlatformError {
+                message: format!("taskkill for pid {pid} failed: {stderr}"),
+                source: Box::new(std::io::Error::other(stderr.as_ref())),
+            });
         }
 
-        Ok(json!({ "status": "stop_initiated", "method": "pid", "pid": pid }))
+        Ok(json!({ "status": "stopped", "method": "pid", "pid": pid }))
     } else if let Some(name) = config.get("name").and_then(|v| v.as_str()) {
         let output = std::process::Command::new("taskkill")
             .args(["/F", "/IM", name])
@@ -202,10 +233,13 @@ fn action_stop(config: &Value) -> SmithResult<ToolResult> {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            tracing::warn!("taskkill for {} failed: {}", name, stderr);
+            return Err(SmithError::PlatformError {
+                message: format!("taskkill for {name} failed: {stderr}"),
+                source: Box::new(std::io::Error::other(stderr.as_ref())),
+            });
         }
 
-        Ok(json!({ "status": "stop_initiated", "method": "name", "name": name }))
+        Ok(json!({ "status": "stopped", "method": "name", "name": name }))
     } else {
         Err(SmithError::InvalidParams(
             "Must provide 'pid' or 'name' for stop action".into(),

@@ -9,7 +9,7 @@ use crate::selector::ElementSelector;
 
 /// Инструмент для поиска UI-элемента на рабочем столе Windows.
 ///
-/// Принимает параметры селектора (name, automation_id, control_type, class_name, pid)
+/// Принимает параметры селектора (name, `automation_id`, `control_type`, `class_name`, pid)
 /// и сохраняет найденный элемент в контексте под указанным ключом.
 pub struct FindTool;
 
@@ -102,8 +102,11 @@ impl Tool for FindTool {
         if let Some(cn) = config.get("class_name").and_then(|v| v.as_str()) {
             selector = selector.class_name(cn);
         }
-        if let Some(pid) = config.get("pid").and_then(|v| v.as_u64()) {
-            selector = selector.pid(pid as u32);
+        if let Some(pid) = config.get("pid").and_then(serde_json::Value::as_u64) {
+            let pid = u32::try_from(pid).map_err(|_| {
+                SmithError::InvalidParams(format!("PID {pid} out of range (max u32)"))
+            })?;
+            selector = selector.pid(pid);
         }
 
         // 4. Поиск в блокирующем потоке (COM-вызовы).

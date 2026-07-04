@@ -3,7 +3,7 @@
 //! Two modes:
 //! - `single`  – press CTRL alone to capture the element under cursor.
 //! - `series`  – automatically record every mouse click & text input;
-//!               press Ctrl+Shift+F2 to stop.
+//!   press Ctrl+Shift+F2 to stop.
 //!
 //! Outputs structured JSON with full tree paths and best-effort flat selectors.
 

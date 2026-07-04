@@ -3,25 +3,106 @@
 ## Документация инструментов
 
 Спецификации реализованных инструментов находятся в `docs/design/<tool-name>/specification.md`:
-- `docs/design/windows-process/specification.md` — управление процессами
-- `docs/design/windows-find/specification.md` — поиск UI-элементов
-- `docs/design/windows-click/specification.md` — клик по элементу
+- `docs/design/windows-process/specification.md` -- управление процессами
+- `docs/design/windows-find/specification.md` -- поиск UI-элементов
+- `docs/design/windows-click/specification.md` -- клик по элементу
 
 При генерации нового инструмента создавай specification по шаблону `docs/templates/specification-template.md`.
 
-### Запросы к графу
+## Поиск по коду
 
-Для анализа архитектуры или поиска связей используй:
+Для навигации по кодовой базе используй комбинацию инструментов:
+
+- **ast-index** (${\textsf{\color{green}установлен}}$) — быстрый структурный поиск символов, файлов, использований
+- **graphify-rs** (${\textsf{\color{green}установлен}}$) — архитектурный анализ: граф зависимостей, связи модулей
+- **codebase_semantic_search** (${\textsf{\color{orange}встроенный в Oz}}$) — семантический поиск по смыслу
+- **grep** (${\textsf{\color{orange}встроенный в Oz}}$) — regex и точный строковый поиск
+
+**Иерархия использования:**
+1. `ast-index` — структурный поиск (символы, реализация трейта, использования, кто вызывает)
+2. `graphify-rs` — архитектурный анализ (связи модулей, граф зависимостей, высокоуровневые вопросы)
+3. `codebase_semantic_search` — если не знаешь точного имени или ищешь по смыслу/концепции (ast-index и graphify-rs такого не умеют)
+4. `grep` — если ast-index вернул пусто, или нужен regex/поиск по строковому паттерну
+5. Перед чтением файла >500 строк — сначала `ast-index outline <file>`
+
+### Поддержание индекса ast-index
+
 ```bash
-graphify-rs query "<вопрос>"
+# Проверить, что индекс актуален
+ast-index stats
+
+# После git pull/checkout/switch
+ast-index update
 ```
-Убедись, что граф сгенерирован перед выполнением запроса.
 
-### Установка
+### Основные команды ast-index
 
-Если `graphify-rs` не установлен:
+**Поиск:**
+- `ast-index search "<запрос>"` -- универсальный поиск
+- `ast-index file "<паттерн>"` -- поиск файлов
+- `ast-index symbol "<имя>"` -- найти определение символа
+- `ast-index class "<имя>"` -- найти класс/структуру
+- `ast-index outline <файл>` -- структура файла (перед чтением больших файлов)
+
+**Использования и вызовы:**
+- `ast-index usages "<символ>"` -- все использования символа
+- `ast-index callers "<функция>"` -- кто вызывает функцию
+- `ast-index refs "<символ>"` -- перекрестные ссылки
+- `ast-index implementations "<трейт>"` -- реализации интерфейса
+- `ast-index hierarchy "<класс>"` -- дерево иерархии
+- `ast-index call-tree "<функция> -d 3"` -- дерево вызовов
+
+**Модули:**
+- `ast-index deps "<модуль>"` -- зависимости модуля
+- `ast-index dependents "<модуль>"` -- кто зависит от модуля
+
+**Качество кода:**
+- `ast-index todo` -- все TODO/FIXME/HACK
+- `ast-index deprecated` -- устаревшие элементы
+- `ast-index changed` -- что изменилось в текущей ветке
+
+### Примеры для smith-automation
+
 ```bash
-cargo install graphify-rs
+# Поиск всех реализаций трейта Tool
+ast-index implementations "Tool"
+
+# Где используется ExecutionContext
+ast-index usages "ExecutionContext"
+
+# Кто вызывает execute
+ast-index callers "execute"
+
+# Структура файла перед чтением
+ast-index outline crates/smith-core/src/registry.rs
+
+# Зависимости модуля
+ast-index deps "smith-windows"
+```
+
+### Правила для суб-агентов
+
+При запуске суб-агента для поиска по коду передавай инструкцию:
+```
+Search hierarchy (use in this order):
+
+1. Structural search:
+   ast-index search "query"           -- universal search
+   ast-index file "Name"              -- find a file
+   ast-index symbol "Name"            -- find a symbol definition
+   ast-index usages "Name"            -- all usages of a symbol
+   ast-index implementations "Trait"  -- implementations
+   ast-index callers "func"           -- who calls this function
+   ast-index outline <file>            -- file structure before reading
+
+2. Architecture queries:
+   graphify-rs query --graph <path>   -- knowledge graph questions
+
+3. Semantic search (when you don't know exact names):
+   codebase_semantic_search           -- search by concept/meaning
+
+4. Regex/string search (if ast-index returns empty):
+   grep "<pattern>"                    -- regex/string search
 ```
 
 ## graphify-rs

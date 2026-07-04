@@ -17,8 +17,8 @@ use crate::types::{BestSelector, CapturedElement, PathNode};
 pub fn cursor_position() -> (f64, f64) {
     unsafe {
         let mut pt = std::mem::zeroed();
-        if GetCursorPos(&mut pt).is_ok() {
-            (pt.x as f64, pt.y as f64)
+        if GetCursorPos(&raw mut pt).is_ok() {
+            (f64::from(pt.x), f64::from(pt.y))
         } else {
             (0.0, 0.0)
         }
@@ -30,6 +30,7 @@ pub fn cursor_position() -> (f64, f64) {
 /// Walks the UIA control-view tree from the root to find the deepest
 /// element at the cursor position. Avoids `element_from_point` which
 /// can return the desktop root depending on COM threading state.
+#[allow(clippy::cast_possible_truncation)]
 pub fn capture_at_point(x: f64, y: f64) -> Result<(Vec<PathNode>, BestSelector), String> {
     let automation = UIAutomation::new().map_err(|e| format!("UIA init failed: {e}"))?;
     let ix = x as i32;
@@ -141,9 +142,8 @@ fn find_deepest_at_point(
     y: i32,
 ) -> Result<UIElement, String> {
     loop {
-        let mut child = match walker.get_first_child(&current) {
-            Ok(c) => c,
-            Err(_) => return Ok(current),
+        let Ok(mut child) = walker.get_first_child(&current) else {
+            return Ok(current);
         };
 
         let mut found = false;

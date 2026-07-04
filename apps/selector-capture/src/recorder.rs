@@ -69,7 +69,6 @@ fn wait_single_capture(
                     }
                     Err(e) => {
                         eprintln!("\n  ⚠ capture: {e}");
-                        continue;
                     }
                 }
             }
@@ -97,11 +96,11 @@ fn spawn_single_listener(tx: Sender<SingleEvent>) {
                     blocked = false;
                 }
                 // Non-modifier while CTRL held → combo
-                EventType::KeyPress(ref k) if ctrl_down && !is_modifier(k) => {
+                EventType::KeyPress(ref k) if ctrl_down && !is_modifier(*k) => {
                     blocked = true;
                 }
                 // CTRL released
-                EventType::KeyRelease(Key::ControlLeft) | EventType::KeyRelease(Key::ControlRight) => {
+                EventType::KeyRelease(Key::ControlLeft | Key::ControlRight) => {
                     if ctrl_down && !blocked {
                         let _ = tx.send(SingleEvent::Trigger);
                     }
@@ -221,19 +220,18 @@ fn spawn_series_listener(tx: Sender<SeriesEvent>) {
         let _ = listen(move |event| {
             // ── update modifier states on every event ──
             match event.event_type {
-                EventType::KeyPress(Key::ShiftLeft) | EventType::KeyPress(Key::ShiftRight) => {
-                    shift = true
+                EventType::KeyPress(Key::ShiftLeft | Key::ShiftRight) => {
+                    shift = true;
                 }
-                EventType::KeyRelease(Key::ShiftLeft) | EventType::KeyRelease(Key::ShiftRight) => {
-                    shift = false
+                EventType::KeyRelease(Key::ShiftLeft | Key::ShiftRight) => {
+                    shift = false;
                 }
-                EventType::KeyPress(Key::ControlLeft) | EventType::KeyPress(Key::ControlRight) => {
-                    ctrl = true
+                EventType::KeyPress(Key::ControlLeft | Key::ControlRight) => {
+                    ctrl = true;
                 }
-                EventType::KeyRelease(Key::ControlLeft)
-                | EventType::KeyRelease(Key::ControlRight) => ctrl = false,
-                EventType::KeyPress(Key::Alt) | EventType::KeyPress(Key::AltGr) => alt = true,
-                EventType::KeyRelease(Key::Alt) | EventType::KeyRelease(Key::AltGr) => alt = false,
+                EventType::KeyRelease(Key::ControlLeft | Key::ControlRight) => ctrl = false,
+                EventType::KeyPress(Key::Alt | Key::AltGr) => alt = true,
+                EventType::KeyRelease(Key::Alt | Key::AltGr) => alt = false,
                 _ => {}
             }
 
@@ -251,7 +249,7 @@ fn spawn_series_listener(tx: Sender<SeriesEvent>) {
                 }
 
                 // ── Input detected (any printable key, Ctrl/Alt not held) ──
-                EventType::KeyPress(ref key) if !ctrl && !alt && is_printable_key(key) => {
+                EventType::KeyPress(ref key) if !ctrl && !alt && is_printable_key(*key) => {
                     let _ = tx.send(SeriesEvent::Input);
                 }
 
@@ -265,7 +263,7 @@ fn spawn_series_listener(tx: Sender<SeriesEvent>) {
 //  Shared helpers
 // ──────────────────────────────────────────────────────────
 
-fn is_modifier(k: &Key) -> bool {
+fn is_modifier(k: Key) -> bool {
     matches!(
         k,
         Key::ControlLeft
@@ -279,6 +277,7 @@ fn is_modifier(k: &Key) -> bool {
     )
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn timestamp_id() -> u64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -307,7 +306,7 @@ fn append_capture(output: &str, new_cap: Capture) -> anyhow::Result<()> {
 
 /// Returns `true` for keys that normally produce text input
 /// (letters, numbers, symbols, space, enter, numpad).
-fn is_printable_key(key: &Key) -> bool {
+fn is_printable_key(key: Key) -> bool {
     matches!(
         key,
         Key::KeyA | Key::KeyB | Key::KeyC | Key::KeyD | Key::KeyE

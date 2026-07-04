@@ -18,6 +18,22 @@ pub enum ContextValue {
     Null,
 }
 
+impl PartialEq for ContextValue {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::String(a), Self::String(b)) => a == b,
+            (Self::Number(a), Self::Number(b)) => (a - b).abs() < f64::EPSILON,
+            (Self::Boolean(a), Self::Boolean(b)) => a == b,
+            (Self::List(a), Self::List(b)) => a == b,
+            (Self::Bytes(a), Self::Bytes(b)) => a == b,
+            (Self::Null, Self::Null) => true,
+            // Custom variant: value comparison not possible through `dyn Any`
+            (Self::Custom(_), Self::Custom(_)) => false,
+            _ => false,
+        }
+    }
+}
+
 impl ContextValue {
     /// Извлекает строковое значение.
     ///
@@ -198,8 +214,9 @@ mod tests {
 
     #[test]
     fn test_context_value_try_as_number() {
-        let val = ContextValue::Number(3.14);
-        assert!((val.try_as_number().ok().unwrap() - 3.14).abs() < f64::EPSILON);
+        let val = ContextValue::Number(std::f64::consts::PI);
+        let result = val.try_as_number();
+        assert!(result.is_ok_and(|n| (n - std::f64::consts::PI).abs() < f64::EPSILON));
 
         let val = ContextValue::Boolean(true);
         assert!(val.try_as_number().is_err());

@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 use smith_core::{ExecutionContext, SmithError, SmithResult, Tool, ToolConfig, ToolResult};
 use tokio_util::sync::CancellationToken;
 
-/// Инструмент для установки текста через UI Automation ValuePattern.
+/// Инструмент для установки текста через UI Automation `ValuePattern`.
 ///
 /// В отличие от `InputTextTool`, этот инструмент напрямую устанавливает
 /// значение текстового поля через `ValuePattern::set_value()`, что
