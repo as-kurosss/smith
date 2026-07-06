@@ -28,8 +28,7 @@ let result = registry
 crates/
 ├── smith-core/         # Core: Tool, ExecutionContext, SmithError
 ├── smith-windows/      # Windows UI Automation tools
-├── smith-workflow/     # Workflow engine (linear steps)
-├── smith-rpa/          # Type-safe Step constructors
+├── smith-rpa/          # Type-safe Node::Rpa constructors
 ├── smith-ai/           # Rig-based LLM agent
 └── smith-graph/        # FlowGraph execution engine
 apps/
@@ -41,8 +40,7 @@ apps/
 |-------|-------------|
 | **smith-core** | `Tool` trait, `ExecutionContext` with scoped variables, `SmithError` |
 | **smith-windows** | UI Automation tools (`ClickTool`, `FindTool`, `InputTextTool`, `ProcessTool`, `SetTextTool`, `WaitTool`) |
-| **smith-workflow** | Workflow engine with linear RPA/AI step execution |
-| **smith-rpa** | Type-safe Step constructors by domain (windows) |
+| **smith-rpa** | Type-safe `Node::Rpa` constructors by domain (windows) |
 | **smith-ai** | Rig-based LLM agent wrapper (`SmithAgent`) |
 | **smith-graph** | FlowGraph — graph execution engine with error handling and routing |
 | **smith-examples** | Example apps: pure RPA, AI agent, FlowGraph, combined workflow |

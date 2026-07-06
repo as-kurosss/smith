@@ -1,8 +1,8 @@
 // crates/smith-graph/src/lib.rs
-//! FlowGraph — graph-based execution engine for hybrid Agent + RPA.
+//! FlowGraph — graph-based execution engine for hybrid Ai + RPA.
 //!
 //! # Key types
-//! - [`Node`] — node types (Rpa, Agent, Router, Think, SubGraph, Loop, Approval)
+//! - [`Node`] — node types (Rpa, Ai, Router, Think, SubGraph, Loop, Approval)
 //! - [`Edges`] — transitions on success/failure/choice
 //! - [`FlowGraph`] — directed graph with an entry node
 //! - [`GraphExecutor`] — executes the graph, dispatches nodes to ToolRegistry or AiHandler

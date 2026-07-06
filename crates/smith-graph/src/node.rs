@@ -39,7 +39,7 @@ pub enum Node {
         graph: Box<FlowGraph>,
     },
     /// LLM agent with ReAct loop, limited tool set.
-    Agent {
+    Ai {
         prompt: String,
         tools: Vec<String>,
         max_turns: usize,
@@ -74,7 +74,7 @@ impl Node {
         match self {
             Node::Rpa { .. } => "Rpa",
             Node::SubGraph { .. } => "SubGraph",
-            Node::Agent { .. } => "Agent",
+            Node::Ai { .. } => "Ai",
             Node::Router { .. } => "Router",
             Node::Think { .. } => "Think",
             Node::Approval { .. } => "Approval",
@@ -120,7 +120,7 @@ mod tests {
     #[test]
     fn test_node_kind_name() {
         assert_eq!(Node::Rpa { tool: "t", args: Value::Null, retry: RetryPolicy::default() }.kind_name(), "Rpa");
-        assert_eq!(Node::Agent { prompt: "".into(), tools: vec![], max_turns: 3 }.kind_name(), "Agent");
+        assert_eq!(Node::Ai { prompt: "".into(), tools: vec![], max_turns: 3 }.kind_name(), "Ai");
         assert_eq!(Node::Router { prompt: "".into(), options: vec![] }.kind_name(), "Router");
         assert_eq!(Node::Think { prompt: "".into(), output_schema: Value::Null }.kind_name(), "Think");
         assert_eq!(Node::Approval { message: "".into(), timeout: None }.kind_name(), "Approval");

@@ -5,7 +5,6 @@ members = [
     "apps/smith-examples",
     "crates/smith-core",
     "crates/smith-windows",
-    "crates/smith-workflow",
     "crates/smith-rpa",
     "crates/smith-ai",
     "crates/smith-graph",

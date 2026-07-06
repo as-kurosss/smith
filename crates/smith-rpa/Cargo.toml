@@ -5,5 +5,5 @@ edition = "2024"
 
 [dependencies]
 smith-core = { path = "../smith-core" }
-smith-workflow = { path = "../smith-workflow" }
+smith-graph = { path = "../smith-graph" }
 serde_json = { workspace = true }

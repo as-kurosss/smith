@@ -124,14 +124,14 @@ impl<'a> GraphExecutor<'a> {
                 let result = Box::pin(self.execute(graph, &mut sub_ctx, token.clone())).await?;
                 Ok(result)
             }
-            Node::Agent {
+            Node::Ai {
                 prompt,
                 tools,
                 max_turns,
             } => {
                 let handler =
                     self.ai_handler
-                        .ok_or_else(|| SmithError::InvalidParams("Agent not configured".into()))?;
+                        .ok_or_else(|| SmithError::InvalidParams("AI handler not configured".into()))?;
                 handler
                     .agent_run(prompt, tools, *max_turns, ctx, token)
                     .await
@@ -139,7 +139,7 @@ impl<'a> GraphExecutor<'a> {
             Node::Router { prompt, options } => {
                 let handler =
                     self.ai_handler
-                        .ok_or_else(|| SmithError::InvalidParams("Router: Agent not configured".into()))?;
+                        .ok_or_else(|| SmithError::InvalidParams("Router: AI handler not configured".into()))?;
                 let labels: Vec<String> = options.iter().map(|(l, _)| l.clone()).collect();
                 let decision = handler.decide(prompt, &labels, ctx, token).await?;
                 Ok(Value::String(decision))
@@ -335,7 +335,7 @@ mod tests {
             args: serde_json::json!({}),
             retry: RetryPolicy::default(),
         });
-        let agent = b.add_node(Node::Agent {
+        let agent = b.add_node(Node::Ai {
             prompt: "analyze".into(),
             tools: vec![],
             max_turns: 3,
