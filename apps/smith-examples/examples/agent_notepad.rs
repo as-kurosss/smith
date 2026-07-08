@@ -12,11 +12,12 @@
 #[cfg(windows)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenvy::dotenv().ok();
     use std::sync::Arc;
 
     use rig::tool::ToolDyn;
     use smith_ai::{ProviderConfig, ToolAdapter};
-    use smith_core::ExecutionContext;
+    use smith_core::{ExecutionContext, Unvalidated};
     use smith_windows::tools::{FindTool, ProcessTool, SetTextTool};
     use tokio::sync::Mutex;
     use tokio_util::sync::CancellationToken;
@@ -25,7 +26,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
 
     // -- ExecutionContext shared between tools --
-    let ctx = Arc::new(Mutex::new(ExecutionContext::new()));
+    let ctx = Arc::new(Mutex::new(
+        ExecutionContext::<Unvalidated>::new().validate(),
+    ));
     let token = CancellationToken::new();
 
     // -- Wrap Windows tools into Rig-compatible adapters --

@@ -13,5 +13,5 @@ pub mod node;
 
 pub use executor::GraphExecutor;
 pub use graph::{FlowGraph, FlowGraphBuilder};
-pub use node::{EdgeKind, Edges, Node, NodeId, NodeIO};
+pub use node::{EdgeKind, Edges, Node, NodeIO, NodeId};
 pub use smith_core::RetryPolicy;

@@ -24,11 +24,10 @@
 #[cfg(windows)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenvy::dotenv().ok();
     use smith_ai::SmithAgent;
-    use smith_core::{AiHandler, ExecutionContext, ToolRegistry};
-    use smith_graph::{
-        EdgeKind, FlowGraph, GraphExecutor, Node, RetryPolicy,
-    };
+    use smith_core::{AiHandler, ExecutionContext, Ready, ToolRegistry, Unvalidated};
+    use smith_graph::{EdgeKind, FlowGraph, GraphExecutor, Node, RetryPolicy};
     use smith_windows::tools::{FindTool, ProcessTool, SetTextTool, WaitTool};
     use tokio_util::sync::CancellationToken;
 
@@ -68,7 +67,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "control_type": "Edit",
             "output_key": "notepad_edit",
         }),
-        retry: RetryPolicy { max_retries: 10, delay_ms: 500 },
+        retry: RetryPolicy {
+            max_retries: 10,
+            delay_ms: 500,
+        },
     });
 
     // 3. Think: AI analyzes the error (if find failed)
@@ -76,7 +78,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         prompt: "The Windows UI Automation 'find' operation failed. \
                  Analyze the possible causes (window not ready, wrong class, etc.) \
                  and prepare a recommendation. Return JSON with 'possible_causes' and \
-                 'recommendation' fields.".to_string(),
+                 'recommendation' fields."
+            .to_string(),
         output_schema: serde_json::json!({
             "type": "object",
             "properties": {
@@ -135,11 +138,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     b.on_choice(router, "abort", close);
 
     // Build graph
-    let graph = b.build().map_err(|e| format!("Graph validation failed: {e}"))?;
+    let graph = b
+        .build()
+        .map_err(|e| format!("Graph validation failed: {e}"))?;
 
     // -- Execute --
     let executor = GraphExecutor::new(&registry, Some(&ai_agent as &dyn AiHandler));
-    let mut ctx = ExecutionContext::new();
+    let mut ctx: ExecutionContext<Ready> = ExecutionContext::<Unvalidated>::new().validate();
     let token = CancellationToken::new();
 
     let result = executor.execute(&graph, &mut ctx, token).await?;

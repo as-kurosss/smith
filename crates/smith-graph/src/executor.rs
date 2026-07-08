@@ -2,7 +2,9 @@
 //! GraphExecutor — executes FlowGraph, dispatches nodes to ToolRegistry or AiHandler.
 
 use serde_json::Value;
-use smith_core::{AiHandler, ExecutionContext, SmithError, SmithResult, ToolRegistry};
+use smith_core::{
+    AiHandler, ExecutionContext, Ready, SmithError, SmithResult, ToolRegistry, Unvalidated,
+};
 use tokio_util::sync::CancellationToken;
 use tracing::{info, warn};
 
@@ -30,7 +32,7 @@ impl<'a> GraphExecutor<'a> {
     pub async fn execute(
         &self,
         graph: &FlowGraph,
-        ctx: &mut ExecutionContext,
+        ctx: &mut ExecutionContext<Ready>,
         token: CancellationToken,
     ) -> SmithResult<Value> {
         let mut current = Some(graph.entry);
@@ -44,9 +46,7 @@ impl<'a> GraphExecutor<'a> {
             let node = &graph.nodes[&node_id];
             info!("Executing node {:?}: {}", node_id, node.kind_name());
 
-            let result = self
-                .execute_node(node, ctx, &token)
-                .await;
+            let result = self.execute_node(node, ctx, &token).await;
 
             // Save the result in the context
             let result_key = format!("node_{node_id:?}");
@@ -54,7 +54,9 @@ impl<'a> GraphExecutor<'a> {
                 Ok(val) => {
                     ctx.set(
                         &result_key,
-                        smith_core::ContextValue::String(serde_json::to_string(val).unwrap_or_default()),
+                        smith_core::ContextValue::String(
+                            serde_json::to_string(val).unwrap_or_default(),
+                        ),
                     );
                 }
                 Err(e) => {
@@ -112,7 +114,7 @@ impl<'a> GraphExecutor<'a> {
     async fn execute_node(
         &self,
         node: &Node,
-        ctx: &mut ExecutionContext,
+        ctx: &mut ExecutionContext<Ready>,
         token: &CancellationToken,
     ) -> SmithResult<Value> {
         match node {
@@ -120,7 +122,8 @@ impl<'a> GraphExecutor<'a> {
                 self.execute_rpa(tool, args, retry, ctx, token).await
             }
             Node::SubGraph { graph } => {
-                let mut sub_ctx = ExecutionContext::new();
+                let mut sub_ctx: ExecutionContext<Ready> =
+                    ExecutionContext::<Unvalidated>::new().validate();
                 let result = Box::pin(self.execute(graph, &mut sub_ctx, token.clone())).await?;
                 Ok(result)
             }
@@ -129,17 +132,17 @@ impl<'a> GraphExecutor<'a> {
                 tools,
                 max_turns,
             } => {
-                let handler =
-                    self.ai_handler
-                        .ok_or_else(|| SmithError::InvalidParams("AI handler not configured".into()))?;
+                let handler = self
+                    .ai_handler
+                    .ok_or_else(|| SmithError::InvalidParams("AI handler not configured".into()))?;
                 handler
                     .agent_run(prompt, tools, *max_turns, ctx, token)
                     .await
             }
             Node::Router { prompt, options } => {
-                let handler =
-                    self.ai_handler
-                        .ok_or_else(|| SmithError::InvalidParams("Router: AI handler not configured".into()))?;
+                let handler = self.ai_handler.ok_or_else(|| {
+                    SmithError::InvalidParams("Router: AI handler not configured".into())
+                })?;
                 let labels: Vec<String> = options.iter().map(|(l, _)| l.clone()).collect();
                 let decision = handler.decide(prompt, &labels, ctx, token).await?;
                 Ok(Value::String(decision))
@@ -148,9 +151,9 @@ impl<'a> GraphExecutor<'a> {
                 prompt,
                 output_schema,
             } => {
-                let handler =
-                    self.ai_handler
-                        .ok_or_else(|| SmithError::InvalidParams("Think: Agent not configured".into()))?;
+                let handler = self.ai_handler.ok_or_else(|| {
+                    SmithError::InvalidParams("Think: Agent not configured".into())
+                })?;
                 handler.think(prompt, output_schema, ctx, token).await
             }
             Node::Approval {
@@ -173,25 +176,32 @@ impl<'a> GraphExecutor<'a> {
                         return Err(SmithError::Cancelled);
                     }
                     info!("Loop iteration {}/{}", i + 1, max_iterations);
-                    let mut sub_ctx = ExecutionContext::new();
-                    last_result =
-                        Box::pin(self.execute(body, &mut sub_ctx, token.clone())).await?;
+                    let mut sub_ctx: ExecutionContext<Ready> =
+                        ExecutionContext::<Unvalidated>::new().validate();
+                    last_result = Box::pin(self.execute(body, &mut sub_ctx, token.clone())).await?;
                 }
-                ctx.set(output_key, smith_core::ContextValue::String(
-                    serde_json::to_string(&last_result).unwrap_or_default(),
-                ));
+                ctx.set(
+                    output_key,
+                    smith_core::ContextValue::String(
+                        serde_json::to_string(&last_result).unwrap_or_default(),
+                    ),
+                );
                 Ok(last_result)
             }
         }
     }
 
     /// Executes an RPA step via ToolRegistry with retry.
+    ///
+    /// # Errors
+    ///
+    /// Returns `SmithError` converted from `ToolError` for compatibility.
     async fn execute_rpa(
         &self,
         tool: &str,
         args: &Value,
         retry: &RetryPolicy,
-        ctx: &mut ExecutionContext,
+        ctx: &mut ExecutionContext<Ready>,
         token: &CancellationToken,
     ) -> SmithResult<Value> {
         let max_retries = retry.max_retries;
@@ -209,7 +219,7 @@ impl<'a> GraphExecutor<'a> {
                 Ok(result) => return Ok(result),
                 Err(e) => {
                     if attempt == max_retries {
-                        return Err(e);
+                        return Err(SmithError::from(e));
                     }
                     warn!(
                         "RPA tool '{tool}' failed (attempt {}/{max_retries}): {e}",
@@ -230,13 +240,26 @@ mod tests {
     use super::*;
     use crate::node::EdgeKind;
     use async_trait::async_trait;
-    use smith_core::{AiHandler, ContextValue, Tool, ToolConfig, ToolResult};
+    use serde::Deserialize;
+    use serde::Serialize;
+    use smith_core::{AiHandler, ContextValue, Tool, ToolError};
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct MockInput {}
+
+    #[derive(Debug, Serialize)]
+    struct MockOutput {
+        status: &'static str,
+    }
 
     /// Mock tool that returns a fixed result.
     struct MockTool;
 
     #[async_trait]
     impl Tool for MockTool {
+        type Input = MockInput;
+        type Output = MockOutput;
+
         fn name(&self) -> &'static str {
             "mock.tool"
         }
@@ -248,12 +271,12 @@ mod tests {
         }
         async fn execute(
             &self,
-            _config: ToolConfig,
+            _input: MockInput,
             ctx: &mut ExecutionContext,
             _token: CancellationToken,
-        ) -> SmithResult<ToolResult> {
+        ) -> Result<MockOutput, ToolError> {
             ctx.set("executed", ContextValue::Boolean(true));
-            Ok(serde_json::json!({ "status": "ok" }))
+            Ok(MockOutput { status: "ok" })
         }
     }
 
@@ -307,14 +330,17 @@ mod tests {
     async fn test_execute_single_rpa() {
         let registry = make_registry();
         let executor = GraphExecutor::new(&registry, None);
-        let mut ctx = ExecutionContext::new();
+        let mut ctx: ExecutionContext<Ready> = ExecutionContext::<Unvalidated>::new().validate();
         let token = CancellationToken::new();
 
-        let graph = FlowGraph::single("test", Node::Rpa {
-            tool: "mock.tool",
-            args: serde_json::json!({}),
-            retry: RetryPolicy::default(),
-        });
+        let graph = FlowGraph::single(
+            "test",
+            Node::Rpa {
+                tool: "mock.tool",
+                args: serde_json::json!({}),
+                retry: RetryPolicy::default(),
+            },
+        );
 
         let result = executor.execute(&graph, &mut ctx, token).await;
         assert!(result.is_ok());
@@ -326,7 +352,7 @@ mod tests {
         let registry = make_registry();
         let ai = MockAi;
         let executor = GraphExecutor::new(&registry, Some(&ai));
-        let mut ctx = ExecutionContext::new();
+        let mut ctx: ExecutionContext<Ready> = ExecutionContext::<Unvalidated>::new().validate();
         let token = CancellationToken::new();
 
         let mut b = FlowGraph::builder("linear_mixed");
@@ -354,7 +380,7 @@ mod tests {
         let registry = make_registry();
         let ai = MockAi;
         let executor = GraphExecutor::new(&registry, Some(&ai));
-        let mut ctx = ExecutionContext::new();
+        let mut ctx: ExecutionContext<Ready> = ExecutionContext::<Unvalidated>::new().validate();
         let token = CancellationToken::new();
 
         let mut b = FlowGraph::builder("router_test");
@@ -380,15 +406,18 @@ mod tests {
     async fn test_execute_cancelled() {
         let registry = make_registry();
         let executor = GraphExecutor::new(&registry, None);
-        let mut ctx = ExecutionContext::new();
+        let mut ctx: ExecutionContext<Ready> = ExecutionContext::<Unvalidated>::new().validate();
         let cancelled = CancellationToken::new();
         cancelled.cancel();
 
-        let graph = FlowGraph::single("cancelled", Node::Rpa {
-            tool: "mock.tool",
-            args: serde_json::json!({}),
-            retry: RetryPolicy::default(),
-        });
+        let graph = FlowGraph::single(
+            "cancelled",
+            Node::Rpa {
+                tool: "mock.tool",
+                args: serde_json::json!({}),
+                retry: RetryPolicy::default(),
+            },
+        );
 
         let result = executor.execute(&graph, &mut ctx, cancelled).await;
         assert!(matches!(result, Err(SmithError::Cancelled)));

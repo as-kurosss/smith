@@ -3,13 +3,15 @@ use std::collections::HashMap;
 
 use tokio_util::sync::CancellationToken;
 
-use crate::context::ExecutionContext;
-use crate::error::{SmithError, SmithResult};
-use crate::tool::{Tool, ToolConfig, ToolResult};
+use crate::context::{ExecutionContext, Ready};
+use crate::tool::{DynTool, Tool, ToolError};
 
 /// Tool registry for centralized management and execution.
+///
+/// Uses `DynTool` (object-safe wrapper) for dynamic dispatch, allowing
+/// the registry to work with any `T: Tool` via its blanket `DynTool` impl.
 pub struct ToolRegistry {
-    tools: HashMap<&'static str, Box<dyn Tool>>,
+    tools: HashMap<&'static str, Box<dyn DynTool>>,
 }
 
 impl ToolRegistry {
@@ -29,26 +31,38 @@ impl ToolRegistry {
 
     /// Returns a reference to a registered tool by name, if it exists.
     #[must_use]
-    pub fn get(&self, name: &str) -> Option<&dyn Tool> {
+    pub fn get(&self, name: &str) -> Option<&dyn DynTool> {
         self.tools.get(name).map(AsRef::as_ref)
     }
 
-    /// Executes a tool by name with the given parameters.
+    /// Executes a tool by name with JSON parameters.
+    ///
+    /// Only available when the `ExecutionContext` is in the [`Ready`] state (§2.3).
+    ///
+    /// # Arguments
+    /// * `name` - Tool name (e.g., `"windows.click"`)
+    /// * `config` - JSON Value parameters
+    /// * `ctx` - Execution context in Ready state
+    /// * `token` - Cancellation token for graceful shutdown
     ///
     /// # Errors
     ///
-    /// Returns `SmithError::InvalidParams` if the tool is not found,
+    /// Returns `ToolError::InvalidInput` if the tool is not found,
     /// or the tool execution error.
     pub async fn execute(
         &self,
         name: &str,
-        config: ToolConfig,
-        ctx: &mut ExecutionContext,
+        config: serde_json::Value,
+        ctx: &mut ExecutionContext<Ready>,
         token: CancellationToken,
-    ) -> SmithResult<ToolResult> {
-        let tool = self
-            .get(name)
-            .ok_or_else(|| SmithError::InvalidParams(format!("Tool '{name}' not found")))?;
+    ) -> Result<serde_json::Value, ToolError> {
+        let tool = self.get(name).ok_or_else(|| {
+            ToolError::invalid_input(
+                format!("Tool '{name}' not found"),
+                None,
+                Some(config.clone()),
+            )
+        })?;
         tool.execute(config, ctx, token).await
     }
 
@@ -69,9 +83,21 @@ impl Default for ToolRegistry {
 mod tests {
     use super::*;
     use async_trait::async_trait;
+    use serde::Deserialize;
+    use serde::Serialize;
     use serde_json::json;
 
-    use crate::context::ContextValue;
+    use crate::context::{ContextValue, Unvalidated};
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct TestInput {
+        param: i32,
+    }
+
+    #[derive(Debug, Serialize)]
+    struct TestOutput {
+        status: &'static str,
+    }
 
     struct TestTool {
         name: &'static str,
@@ -79,6 +105,9 @@ mod tests {
 
     #[async_trait]
     impl Tool for TestTool {
+        type Input = TestInput;
+        type Output = TestOutput;
+
         fn name(&self) -> &'static str {
             self.name
         }
@@ -93,12 +122,12 @@ mod tests {
 
         async fn execute(
             &self,
-            _config: ToolConfig,
+            _input: TestInput,
             ctx: &mut ExecutionContext,
             _token: CancellationToken,
-        ) -> SmithResult<ToolResult> {
+        ) -> Result<TestOutput, ToolError> {
             ctx.set("executed", ContextValue::String(self.name.into()));
-            Ok(json!({"status": "ok"}))
+            Ok(TestOutput { status: "ok" })
         }
     }
 
@@ -130,7 +159,7 @@ mod tests {
         let mut registry = ToolRegistry::new();
         registry.register(TestTool { name: "test.click" });
 
-        let mut ctx = ExecutionContext::new();
+        let mut ctx: ExecutionContext<Ready> = ExecutionContext::<Unvalidated>::new().validate();
         let token = CancellationToken::new();
 
         let result = registry
@@ -147,7 +176,7 @@ mod tests {
     #[tokio::test]
     async fn test_execute_unknown_tool() {
         let registry = ToolRegistry::new();
-        let mut ctx = ExecutionContext::new();
+        let mut ctx: ExecutionContext<Ready> = ExecutionContext::<Unvalidated>::new().validate();
         let token = CancellationToken::new();
 
         let result = registry
@@ -155,7 +184,7 @@ mod tests {
             .await;
 
         assert!(result.is_err());
-        assert!(matches!(result, Err(SmithError::InvalidParams(_))));
+        assert!(matches!(result, Err(ToolError::InvalidInput { .. })));
     }
 
     #[test]

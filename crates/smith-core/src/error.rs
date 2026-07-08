@@ -2,6 +2,8 @@ use std::error::Error;
 
 use thiserror::Error;
 
+use crate::tool::ToolError;
+
 #[derive(Error, Debug)]
 pub enum SmithError {
     #[error("Invalid parameters: {0}")]
@@ -25,6 +27,27 @@ pub enum SmithError {
 
     #[error(transparent)]
     Other(#[from] anyhow::Error),
+}
+
+/// Converts `ToolError` into `SmithError`.
+///
+/// This bridges the typed tool error domain with the older,
+/// general-purpose error type used by the graph executor.
+impl From<ToolError> for SmithError {
+    fn from(err: ToolError) -> Self {
+        match err {
+            ToolError::InvalidInput { message, .. } => {
+                SmithError::InvalidParams(message.to_string())
+            }
+            ToolError::ElementNotFound { .. } => SmithError::ElementNotFound,
+            ToolError::Cancelled { .. } => SmithError::Cancelled,
+            ToolError::PlatformError {
+                message, source, ..
+            } => SmithError::PlatformError { message, source },
+            ToolError::JsonError(e) => SmithError::Other(anyhow::anyhow!("JSON error: {e}")),
+            ToolError::Other(e) => SmithError::Other(anyhow::anyhow!("{e}")),
+        }
+    }
 }
 
 pub type SmithResult<T> = Result<T, SmithError>;

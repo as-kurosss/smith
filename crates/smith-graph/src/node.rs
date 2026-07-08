@@ -35,9 +35,7 @@ pub enum Node {
         retry: RetryPolicy,
     },
     /// Nested subgraph (any nodes).
-    SubGraph {
-        graph: Box<FlowGraph>,
-    },
+    SubGraph { graph: Box<FlowGraph> },
     /// LLM agent with ReAct loop, limited tool set.
     Ai {
         prompt: String,
@@ -119,11 +117,48 @@ mod tests {
 
     #[test]
     fn test_node_kind_name() {
-        assert_eq!(Node::Rpa { tool: "t", args: Value::Null, retry: RetryPolicy::default() }.kind_name(), "Rpa");
-        assert_eq!(Node::Ai { prompt: "".into(), tools: vec![], max_turns: 3 }.kind_name(), "Ai");
-        assert_eq!(Node::Router { prompt: "".into(), options: vec![] }.kind_name(), "Router");
-        assert_eq!(Node::Think { prompt: "".into(), output_schema: Value::Null }.kind_name(), "Think");
-        assert_eq!(Node::Approval { message: "".into(), timeout: None }.kind_name(), "Approval");
+        assert_eq!(
+            Node::Rpa {
+                tool: "t",
+                args: Value::Null,
+                retry: RetryPolicy::default()
+            }
+            .kind_name(),
+            "Rpa"
+        );
+        assert_eq!(
+            Node::Ai {
+                prompt: "".into(),
+                tools: vec![],
+                max_turns: 3
+            }
+            .kind_name(),
+            "Ai"
+        );
+        assert_eq!(
+            Node::Router {
+                prompt: "".into(),
+                options: vec![]
+            }
+            .kind_name(),
+            "Router"
+        );
+        assert_eq!(
+            Node::Think {
+                prompt: "".into(),
+                output_schema: Value::Null
+            }
+            .kind_name(),
+            "Think"
+        );
+        assert_eq!(
+            Node::Approval {
+                message: "".into(),
+                timeout: None
+            }
+            .kind_name(),
+            "Approval"
+        );
     }
 
     #[test]

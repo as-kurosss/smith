@@ -1,11 +1,52 @@
 // crates/smith-windows/src/tools/find.rs
+use std::sync::Arc;
+
 use async_trait::async_trait;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::{Value, json};
-use smith_core::{ExecutionContext, SmithError, SmithResult, Tool, ToolConfig, ToolResult};
+use smith_core::{ContextValue, ExecutionContext, Tool, ToolError};
 use tokio_util::sync::CancellationToken;
 
 use crate::element::SafeUIElement;
 use crate::selector::ElementSelector;
+
+// ---------------------------------------------------------------------------
+// Typed input/output (§2.1)
+// ---------------------------------------------------------------------------
+
+/// Input parameters for `windows.find`.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FindInput {
+    /// Key to store the found element in execution context.
+    pub output_key: String,
+    /// Element name to match.
+    pub name: Option<String>,
+    /// UI Automation identifier.
+    pub automation_id: Option<String>,
+    /// Control type (e.g. Button, Edit, Window).
+    pub control_type: Option<String>,
+    /// Window class name.
+    pub class_name: Option<String>,
+    /// Process ID filter.
+    pub pid: Option<u32>,
+    /// Optional delay before execution in milliseconds.
+    #[serde(default)]
+    pub delay_before_ms: Option<u64>,
+    /// Optional delay after execution in milliseconds.
+    #[serde(default)]
+    pub delay_after_ms: Option<u64>,
+}
+
+/// Output of a successful find operation.
+#[derive(Debug, Serialize)]
+pub struct FindOutput {
+    pub status: &'static str,
+}
+
+// ---------------------------------------------------------------------------
+// Tool implementation
+// ---------------------------------------------------------------------------
 
 /// Tool for finding a UI element on the Windows desktop.
 ///
@@ -29,6 +70,9 @@ impl Default for FindTool {
 
 #[async_trait]
 impl Tool for FindTool {
+    type Input = FindInput;
+    type Output = FindOutput;
+
     fn name(&self) -> &'static str {
         "windows.find"
     }
@@ -82,66 +126,63 @@ impl Tool for FindTool {
 
     async fn execute(
         &self,
-        config: ToolConfig,
+        input: FindInput,
         ctx: &mut ExecutionContext,
         token: CancellationToken,
-    ) -> SmithResult<ToolResult> {
+    ) -> Result<FindOutput, ToolError> {
         // 0. Optional delay before execution
-        crate::tools::apply_delay_before(&config).await;
-
-        // 1. Parameter validation (Canon 10.1)
-        let output_key = config
-            .get("output_key")
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| SmithError::InvalidParams("Missing 'output_key'".into()))?;
-
-        // 2. Cancellation check (Canon 5.4)
-        if token.is_cancelled() {
-            return Err(SmithError::Cancelled);
+        if let Some(ms) = input.delay_before_ms.filter(|&ms| ms > 0) {
+            tokio::time::sleep(std::time::Duration::from_millis(ms)).await;
         }
 
-        // 3. Build selector from config
-        let mut selector = ElementSelector::new();
+        // 1. Cancellation check (§5.4)
+        if token.is_cancelled() {
+            return Err(ToolError::cancelled());
+        }
 
-        if let Some(name) = config.get("name").and_then(|v| v.as_str()) {
+        // 2. Build selector from input
+        let mut selector = ElementSelector::new();
+        if let Some(name) = &input.name {
             selector = selector.name(name);
         }
-        if let Some(aid) = config.get("automation_id").and_then(|v| v.as_str()) {
+        if let Some(aid) = &input.automation_id {
             selector = selector.automation_id(aid);
         }
-        if let Some(ct) = config.get("control_type").and_then(|v| v.as_str()) {
+        if let Some(ct) = &input.control_type {
             selector = selector.control_type(ct);
         }
-        if let Some(cn) = config.get("class_name").and_then(|v| v.as_str()) {
+        if let Some(cn) = &input.class_name {
             selector = selector.class_name(cn);
         }
-        if let Some(pid) = config.get("pid").and_then(serde_json::Value::as_u64) {
-            let pid = u32::try_from(pid).map_err(|_| {
-                SmithError::InvalidParams(format!("PID {pid} out of range (max u32)"))
-            })?;
+        if let Some(pid) = input.pid {
             selector = selector.pid(pid);
         }
 
-        // 4. Search in blocking thread (COM calls).
+        // 3. Search in blocking thread (COM calls).
         //    SafeUIElement is created inside spawn_blocking because UIElement is not Send.
         let safe_element = tokio::task::spawn_blocking(move || {
             selector.find_from_desktop().map(SafeUIElement::new)
         })
         .await
-        .map_err(|e| SmithError::PlatformError {
-            message: "Find element blocking task failed".into(),
-            source: Box::new(e),
-        })??;
+        .map_err(|e| ToolError::platform_error("Find element blocking task failed", e, None))?
+        .map_err(|_e| {
+            ToolError::element_not_found(
+                "No element found matching selector".to_string(),
+                Some(serde_json::to_value(&input).unwrap_or_default()),
+            )
+        })?;
 
-        // 5. Save result to context
+        // 4. Save result to context
         ctx.set(
-            output_key.to_string(),
-            smith_core::ContextValue::Custom(std::sync::Arc::new(safe_element)),
+            input.output_key.clone(),
+            ContextValue::Custom(Arc::new(safe_element)),
         );
 
-        // 6. Optional delay after execution
-        crate::tools::apply_delay_after(&config).await;
+        // 5. Optional delay after execution
+        if let Some(ms) = input.delay_after_ms.filter(|&ms| ms > 0) {
+            tokio::time::sleep(std::time::Duration::from_millis(ms)).await;
+        }
 
-        Ok(json!({ "status": "found" }))
+        Ok(FindOutput { status: "found" })
     }
 }

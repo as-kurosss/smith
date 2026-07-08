@@ -15,3 +15,17 @@ apps/*/target/
 
 # Standalone utility (not part of the automation project)
 apps/smith-context/
+
+# AI agent skill files (user-local configuration)
+.agents/
+AGENTS.md
+
+# Generated graph artifacts (regenerate with graphify-rs build)
+smith-graphify/
+
+# Local Cargo config
+.cargo/
+
+# Environment variables (user-local, contains secrets)
+.env
+.env.local

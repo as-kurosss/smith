@@ -1,9 +1,26 @@
 // crates/smith-core/src/context.rs
 use std::any::Any;
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use std::sync::Arc;
 
-use crate::error::{SmithError, SmithResult};
+use crate::tool::ToolError;
+
+// ---------------------------------------------------------------------------
+// State markers for ExecutionContext typestate (§2.3)
+// ---------------------------------------------------------------------------
+
+/// Initial state: context has been created but not yet validated.
+#[derive(Debug, Clone, Copy)]
+pub struct Unvalidated;
+
+/// Ready state: context is validated and can execute tools.
+#[derive(Debug, Clone, Copy)]
+pub struct Ready;
+
+// ---------------------------------------------------------------------------
+// ContextValue — algebraic data type for storing values
+// ---------------------------------------------------------------------------
 
 /// Algebraic data type for storing values in context.
 #[derive(Debug, Clone)]
@@ -39,11 +56,11 @@ impl ContextValue {
     ///
     /// # Errors
     ///
-    /// Returns `SmithError::InvalidParams` if the value is not a `String`.
-    pub fn try_as_string(&self) -> SmithResult<&str> {
+    /// Returns `ToolError::InvalidInput` if the value is not a `String`.
+    pub fn try_as_string(&self) -> Result<&str, ToolError> {
         match self {
             ContextValue::String(s) => Ok(s.as_str()),
-            _ => Err(SmithError::InvalidParams("Expected String".into())),
+            _ => Err(ToolError::invalid_input("Expected String", None, None)),
         }
     }
 
@@ -51,11 +68,11 @@ impl ContextValue {
     ///
     /// # Errors
     ///
-    /// Returns `SmithError::InvalidParams` if the value is not a `Number`.
-    pub fn try_as_number(&self) -> SmithResult<f64> {
+    /// Returns `ToolError::InvalidInput` if the value is not a `Number`.
+    pub fn try_as_number(&self) -> Result<f64, ToolError> {
         match self {
             ContextValue::Number(n) => Ok(*n),
-            _ => Err(SmithError::InvalidParams("Expected Number".into())),
+            _ => Err(ToolError::invalid_input("Expected Number", None, None)),
         }
     }
 
@@ -63,11 +80,11 @@ impl ContextValue {
     ///
     /// # Errors
     ///
-    /// Returns `SmithError::InvalidParams` if the value is not a `Boolean`.
-    pub fn try_as_boolean(&self) -> SmithResult<bool> {
+    /// Returns `ToolError::InvalidInput` if the value is not a `Boolean`.
+    pub fn try_as_boolean(&self) -> Result<bool, ToolError> {
         match self {
             ContextValue::Boolean(b) => Ok(*b),
-            _ => Err(SmithError::InvalidParams("Expected Boolean".into())),
+            _ => Err(ToolError::invalid_input("Expected Boolean", None, None)),
         }
     }
 
@@ -75,32 +92,73 @@ impl ContextValue {
     ///
     /// # Errors
     ///
-    /// Returns `SmithError::InvalidParams` if the value is not `Custom`
+    /// Returns `ToolError::InvalidInput` if the value is not `Custom`
     /// or the inner type does not match the requested `T`.
-    pub fn try_as_custom<T: 'static>(&self) -> SmithResult<&T> {
+    pub fn try_as_custom<T: 'static>(&self) -> Result<&T, ToolError> {
         match self {
             ContextValue::Custom(arc) => arc
                 .downcast_ref::<T>()
-                .ok_or_else(|| SmithError::InvalidParams("Custom type mismatch".into())),
-            _ => Err(SmithError::InvalidParams("Expected Custom type".into())),
+                .ok_or_else(|| ToolError::invalid_input("Custom type mismatch", None, None)),
+            _ => Err(ToolError::invalid_input("Expected Custom type", None, None)),
         }
     }
 }
 
+// ---------------------------------------------------------------------------
+// ExecutionContext with typestate (§2.3)
+// ---------------------------------------------------------------------------
+
 /// Execution context with a scope stack for variable isolation.
-pub struct ExecutionContext {
+///
+/// The type parameter `State` encodes the context state at compile time:
+/// - [`Unvalidated`] — freshly created, not yet ready for execution
+/// - [`Ready`] — validated and ready for tool execution
+///
+/// # Typestate transitions
+/// - `ExecutionContext<Unvalidated>::new()` → `Unvalidated`
+/// - `ExecutionContext<Unvalidated>::validate()` → `ExecutionContext<Ready>`
+pub struct ExecutionContext<State = Ready> {
     scopes: Vec<HashMap<String, ContextValue>>,
+    _state: PhantomData<State>,
 }
 
-impl ExecutionContext {
-    /// Creates a new context with a global scope.
+// ---------------------------------------------------------------------------
+// Construction (Unvalidated state only)
+// ---------------------------------------------------------------------------
+
+impl ExecutionContext<Unvalidated> {
+    /// Creates a new context with a global scope in the `Unvalidated` state.
     #[must_use]
     pub fn new() -> Self {
         Self {
             scopes: vec![HashMap::new()],
+            _state: PhantomData,
         }
     }
 
+    /// Validates the context and transitions to the `Ready` state.
+    ///
+    /// Currently a no-op; reserved for future validation logic.
+    #[must_use]
+    pub fn validate(self) -> ExecutionContext<Ready> {
+        ExecutionContext {
+            scopes: self.scopes,
+            _state: PhantomData,
+        }
+    }
+}
+
+impl Default for ExecutionContext<Unvalidated> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// I/O operations — available in any state
+// ---------------------------------------------------------------------------
+
+impl<State> ExecutionContext<State> {
     /// Creates a new local scope (e.g., when entering a loop or function).
     pub fn push_scope(&mut self) {
         self.scopes.push(HashMap::new());
@@ -129,12 +187,6 @@ impl ExecutionContext {
             }
         }
         None
-    }
-}
-
-impl Default for ExecutionContext {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

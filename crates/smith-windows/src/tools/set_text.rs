@@ -1,8 +1,47 @@
 // crates/smith-windows/src/tools/set_text.rs
 use async_trait::async_trait;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::{Value, json};
-use smith_core::{ExecutionContext, SmithError, SmithResult, Tool, ToolConfig, ToolResult};
+use smith_core::{ExecutionContext, Tool, ToolError};
 use tokio_util::sync::CancellationToken;
+
+// ---------------------------------------------------------------------------
+// Typed input/output (§2.1)
+// ---------------------------------------------------------------------------
+
+/// Input parameters for `windows.set_text`.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SetTextInput {
+    /// Text value to set.
+    pub text: String,
+    /// Key in ExecutionContext containing a UIElement.
+    pub element_key: Option<String>,
+    /// Element name to find (if element_key not set).
+    pub name: Option<String>,
+    /// UI Automation identifier.
+    pub automation_id: Option<String>,
+    /// Control type.
+    pub control_type: Option<String>,
+    /// Window class name.
+    pub class_name: Option<String>,
+    /// Optional delay before execution in milliseconds.
+    #[serde(default)]
+    pub delay_before_ms: Option<u64>,
+    /// Optional delay after execution in milliseconds.
+    #[serde(default)]
+    pub delay_after_ms: Option<u64>,
+}
+
+/// Output of a successful set_text operation.
+#[derive(Debug, Serialize)]
+pub struct SetTextOutput {
+    pub status: &'static str,
+}
+
+// ---------------------------------------------------------------------------
+// Tool implementation
+// ---------------------------------------------------------------------------
 
 /// Tool for setting text via UI Automation `ValuePattern`.
 ///
@@ -27,6 +66,9 @@ impl Default for SetTextTool {
 
 #[async_trait]
 impl Tool for SetTextTool {
+    type Input = SetTextInput;
+    type Output = SetTextOutput;
+
     fn name(&self) -> &'static str {
         "windows.set_text"
     }
@@ -87,29 +129,26 @@ impl Tool for SetTextTool {
 
     async fn execute(
         &self,
-        config: ToolConfig,
+        input: SetTextInput,
         ctx: &mut ExecutionContext,
         token: CancellationToken,
-    ) -> SmithResult<ToolResult> {
+    ) -> Result<SetTextOutput, ToolError> {
         // 0. Optional delay before execution
-        crate::tools::apply_delay_before(&config).await;
+        if let Some(ms) = input.delay_before_ms.filter(|&ms| ms > 0) {
+            tokio::time::sleep(std::time::Duration::from_millis(ms)).await;
+        }
 
-        // 1. Parameter validation
-        let text = config
-            .get("text")
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| SmithError::InvalidParams("Missing 'text'".into()))?
-            .to_string();
-
+        // 1. Cancellation check (§5.4)
         if token.is_cancelled() {
-            return Err(SmithError::Cancelled);
+            return Err(ToolError::cancelled());
         }
 
         // 2. Get element
-        let element = crate::tools::resolve_element_from_config(&config, ctx)
+        let text = input.text.clone();
+        let element = resolve_element_from_config(&input, ctx)
             .await?
             .ok_or_else(|| {
-                SmithError::InvalidParams("Missing 'element_key' or selector fields".into())
+                ToolError::invalid_input("Missing 'element_key' or selector fields", None, None)
             })?;
 
         // 3. Set text via ValuePattern in blocking thread
@@ -117,27 +156,70 @@ impl Tool for SetTextTool {
             let pattern = element
                 .inner()
                 .get_pattern::<uiautomation::patterns::UIValuePattern>()
-                .map_err(|e| SmithError::PlatformError {
-                    message: "Get ValuePattern failed".into(),
-                    source: Box::new(e),
-                })?;
+                .map_err(|e| ToolError::platform_error("Get ValuePattern failed", e, None))?;
             pattern
                 .set_value(&text)
-                .map_err(|e| SmithError::PlatformError {
-                    message: "Set value failed".into(),
-                    source: Box::new(e),
-                })?;
-            Ok::<_, SmithError>(())
+                .map_err(|e| ToolError::platform_error("Set value failed", e, None))?;
+            Ok::<_, ToolError>(())
         })
         .await
-        .map_err(|e| SmithError::PlatformError {
-            message: "Set text blocking task join failed".into(),
-            source: Box::new(e),
-        })??;
+        .map_err(|e| ToolError::platform_error("Set text blocking task join failed", e, None))??;
 
         // 4. Optional delay after execution
-        crate::tools::apply_delay_after(&config).await;
+        if let Some(ms) = input.delay_after_ms.filter(|&ms| ms > 0) {
+            tokio::time::sleep(std::time::Duration::from_millis(ms)).await;
+        }
 
-        Ok(json!({ "status": "text_set" }))
+        Ok(SetTextOutput { status: "text_set" })
     }
+}
+
+/// Resolves a UI element from input, trying in order:
+/// 1. Look up `element_key` in the execution context
+/// 2. Build an `ElementSelector` from selector fields and find from desktop
+async fn resolve_element_from_config(
+    input: &SetTextInput,
+    ctx: &ExecutionContext,
+) -> Result<Option<crate::element::SafeUIElement>, ToolError> {
+    use crate::element::SafeUIElement;
+    use crate::selector::ElementSelector;
+
+    // 1. Try to get element from context by element_key
+    if let Some(ref key) = input.element_key {
+        let value = ctx.get(key).ok_or_else(|| {
+            ToolError::invalid_input(
+                format!("Key '{key}' not found in context"),
+                Some("element_key".into()),
+                None,
+            )
+        })?;
+        return value
+            .try_as_custom::<SafeUIElement>()
+            .map(|e| Some(e.clone()));
+    }
+
+    // 2. Try to find element by selector fields
+    let mut selector = ElementSelector::new();
+    if let Some(ref name) = input.name {
+        selector = selector.name(name);
+    }
+    if let Some(ref aid) = input.automation_id {
+        selector = selector.automation_id(aid);
+    }
+    if let Some(ref ct) = input.control_type {
+        selector = selector.control_type(ct);
+    }
+    if let Some(ref cn) = input.class_name {
+        selector = selector.class_name(cn);
+    }
+
+    let safe_element =
+        tokio::task::spawn_blocking(move || selector.find_from_desktop().map(SafeUIElement::new))
+            .await
+            .map_err(|e| ToolError::platform_error("Find element blocking task failed", e, None))?
+            .map_err(|_e| {
+                ToolError::element_not_found("No element found matching selector", None)
+            })?;
+
+    Ok(Some(safe_element))
 }

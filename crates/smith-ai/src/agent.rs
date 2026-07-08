@@ -141,6 +141,31 @@ impl SmithAgentBuilder {
                         .build(),
                 )
             }
+            ProviderConfig::OpenAiCompatible {
+                api_key,
+                model,
+                base_url,
+            } => {
+                let client = openai::Client::builder()
+                    .api_key(api_key.clone())
+                    .base_url(base_url)
+                    .build()
+                    .map_err(|e| {
+                        SmithError::Other(anyhow::anyhow!(
+                            "Failed to create OpenAI-compatible client: {e}"
+                        ))
+                    })?;
+
+                Box::new(
+                    client
+                        .completions_api()
+                        .agent(model)
+                        .preamble(&preamble)
+                        .tools(tools)
+                        .default_max_turns(10)
+                        .build(),
+                )
+            }
         };
 
         Ok(SmithAgent { inner })
@@ -283,6 +308,7 @@ impl AiHandler for SmithAgent {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use smith_core::{Ready, Unvalidated};
 
     /// Mock AgentLike that returns preset responses.
     struct MockAgent {
@@ -304,10 +330,14 @@ mod tests {
         }
     }
 
+    fn ctx_ready() -> ExecutionContext<Ready> {
+        ExecutionContext::<Unvalidated>::new().validate()
+    }
+
     #[tokio::test]
     async fn test_agent_run_returns_plain_text() {
         let agent = make_agent("just some text");
-        let mut ctx = ExecutionContext::new();
+        let mut ctx = ctx_ready();
         let token = CancellationToken::new();
 
         let result = agent
@@ -322,7 +352,7 @@ mod tests {
     #[tokio::test]
     async fn test_agent_run_parses_json() {
         let agent = make_agent(r#"{"key": "value"}"#);
-        let mut ctx = ExecutionContext::new();
+        let mut ctx = ctx_ready();
         let token = CancellationToken::new();
 
         let result = agent
@@ -336,7 +366,7 @@ mod tests {
     #[tokio::test]
     async fn test_think_returns_plain_text() {
         let agent = make_agent("analysis result");
-        let mut ctx = ExecutionContext::new();
+        let mut ctx = ctx_ready();
         let token = CancellationToken::new();
 
         let result = agent
@@ -351,7 +381,7 @@ mod tests {
     #[tokio::test]
     async fn test_think_parses_json() {
         let agent = make_agent(r#"{"decision": "ok"}"#);
-        let mut ctx = ExecutionContext::new();
+        let mut ctx = ctx_ready();
         let token = CancellationToken::new();
 
         let result = agent
@@ -365,7 +395,7 @@ mod tests {
     #[tokio::test]
     async fn test_decide_cancelled() {
         let agent = make_agent("");
-        let mut ctx = ExecutionContext::new();
+        let mut ctx = ctx_ready();
         let cancelled = CancellationToken::new();
         cancelled.cancel();
 
@@ -379,18 +409,21 @@ mod tests {
     #[tokio::test]
     async fn test_decide_empty_options() {
         let agent = make_agent("");
-        let mut ctx = ExecutionContext::new();
+        let mut ctx = ctx_ready();
         let token = CancellationToken::new();
 
         let result = agent.decide("choose", &[], &mut ctx, &token).await;
 
-        assert!(matches!(result, Err(smith_core::SmithError::InvalidParams(_))));
+        assert!(matches!(
+            result,
+            Err(smith_core::SmithError::InvalidParams(_))
+        ));
     }
 
     #[tokio::test]
     async fn test_decide_valid_choice() {
         let agent = make_agent("option_b");
-        let mut ctx = ExecutionContext::new();
+        let mut ctx = ctx_ready();
         let token = CancellationToken::new();
 
         let result = agent
@@ -410,7 +443,7 @@ mod tests {
     #[tokio::test]
     async fn test_decide_invalid_choice() {
         let agent = make_agent("option_c");
-        let mut ctx = ExecutionContext::new();
+        let mut ctx = ctx_ready();
         let token = CancellationToken::new();
 
         let result = agent
@@ -422,13 +455,16 @@ mod tests {
             )
             .await;
 
-        assert!(matches!(result, Err(smith_core::SmithError::InvalidParams(_))));
+        assert!(matches!(
+            result,
+            Err(smith_core::SmithError::InvalidParams(_))
+        ));
     }
 
     #[tokio::test]
     async fn test_decide_trims_quotes() {
         let agent = make_agent(r#""option_a""#);
-        let mut ctx = ExecutionContext::new();
+        let mut ctx = ctx_ready();
         let token = CancellationToken::new();
 
         let result = agent
