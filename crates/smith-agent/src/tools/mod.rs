@@ -1,6 +1,7 @@
 //! **Built-in Tools** — a collection of ready-to-use [`Tool`](crate::agent::Tool) implementations.
 //!
 //! # Available tools
+//! * [`SmithToolAdapter`] — bridge that wraps any `smith_core::DynTool` as an agent `Tool`
 //! * [`CalculatorTool`] — safe mathematical expression evaluator
 //! * [`TimeTool`] — current system date and time
 //! * [`ShellTool`] — execute shell commands
@@ -9,6 +10,7 @@
 //! * [`DocumentReadTool`] — read documents from the filesystem
 //! * [`DelegateExternalAgentTool`] — delegate to external agent runners via ACP
 
+pub mod adapter;
 pub mod calculator;
 pub mod custom;
 pub mod delegate_external;
@@ -18,6 +20,7 @@ pub mod shell_tool;
 pub mod time_tool;
 pub mod web_search;
 
+pub use adapter::SmithToolAdapter;
 pub use calculator::CalculatorTool;
 pub use custom::CustomTool;
 pub use delegate_external::{

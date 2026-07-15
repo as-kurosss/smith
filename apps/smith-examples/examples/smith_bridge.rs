@@ -1,82 +1,31 @@
-//! # Smith ↔ Praxis Bridge Example
+//! # Smith Bridge — Using `SmithToolAdapter` (canonical adapter)
 //!
-//! Demonstrates the Tool adapter that allows a praxis Agent to use
-//! any `smith_core` tool (e.g. `smith_windows::ClickTool`).
+//! Demonstrates the canonical `smith_agent::tools::SmithToolAdapter` that
+//! wraps any `smith_core::DynTool` as a `smith_agent::agent::tool::Tool`.
 //!
-//! The adapter wraps `smith_core::DynTool` as `praxis::agent::Tool`.
+//! This adapter is the standard integration point between the RPA layer
+//! (smith-core) and the agent layer (smith-agent).
 //!
-//! Run:
+//! ## Run
 //! ```bash
 //! cargo run --example smith_bridge
 //! ```
-//!
-//! This example does NOT call a real LLM — it validates that:
-//! 1. The adapter builds a correct `ToolSpec` (name, description, schema).
-//! 2. A praxis `ToolSet` can hold smith tools.
-//! 3. Calling through the adapter reaches the underlying smith tool.
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use smith_agent::agent::tool::{
-    Tool as PraxisTool, ToolCategory, ToolError as PraxisToolError, ToolSet, ToolSpec,
-};
-use smith_core::tool::{DynTool, Tool as SmithTool, ToolError as SmithToolError};
-use smith_core::{ExecutionContext, Ready, Unvalidated};
+use smith_agent::agent::tool::{Tool, ToolSet};
+use smith_agent::tools::SmithToolAdapter;
+use smith_core::ExecutionContext;
+use smith_core::tool::{Tool as SmithTool, ToolError};
 use tokio_util::sync::CancellationToken;
 
-// ---------------------------------------------------------------------------
-// Step 1: SmithToolAdapter — wraps any smith_core::DynTool as praxis::agent::Tool
-// ---------------------------------------------------------------------------
-
-/// Adapter that lets any `smith_core` tool be used as a praxis `Tool`.
-///
-/// On every `call()` it creates a fresh [`ExecutionContext`] and
-/// [`CancellationToken`] and delegates to the underlying smith tool.
-pub struct SmithToolAdapter {
-    inner: Box<dyn DynTool>,
-}
-
-impl SmithToolAdapter {
-    /// Wrap a smith tool (already boxed as `DynTool`).
-    pub fn new(inner: Box<dyn DynTool>) -> Self {
-        Self { inner }
-    }
-
-    /// Convenience constructor for `T: SmithTool + 'static`.
-    pub fn from<T: SmithTool + 'static>(tool: T) -> Self {
-        Self::new(Box::new(tool))
-    }
-}
-
-#[async_trait::async_trait]
-impl PraxisTool for SmithToolAdapter {
-    fn spec(&self) -> ToolSpec {
-        ToolSpec {
-            name: self.inner.name().to_string(),
-            description: self.inner.description().to_string(),
-            parameters: self.inner.schema(),
-            category: ToolCategory::Generic,
-        }
-    }
-
-    async fn call(&self, args: Value) -> Result<Value, PraxisToolError> {
-        let mut ctx: ExecutionContext<Ready> = ExecutionContext::<Unvalidated>::new().validate();
-        let token = CancellationToken::new();
-        self.inner
-            .execute(args, &mut ctx, token)
-            .await
-            .map_err(|e| PraxisToolError::Execution {
-                tool: self.inner.name().to_string(),
-                message: e.to_string(),
-            })
-    }
-}
+#[cfg(test)]
+use smith_agent::agent::tool::ToolCategory;
 
 // ---------------------------------------------------------------------------
-// Step 2: A minimal smith Tool for demonstration
+// A minimal smith-core tool for demonstration
 // ---------------------------------------------------------------------------
 
-/// A deterministic smith tool that echoes its input back.
 #[derive(Debug, Serialize, Deserialize)]
 struct EchoInput {
     message: String,
@@ -120,7 +69,7 @@ impl SmithTool for EchoSmithTool {
         input: EchoInput,
         _ctx: &mut ExecutionContext,
         _token: CancellationToken,
-    ) -> Result<EchoOutput, SmithToolError> {
+    ) -> Result<EchoOutput, ToolError> {
         Ok(EchoOutput {
             result: input.message,
         })
@@ -128,12 +77,53 @@ impl SmithTool for EchoSmithTool {
 }
 
 // ---------------------------------------------------------------------------
-// Step 3: Tests
+// Entry point
+// ---------------------------------------------------------------------------
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("=== Smith ↔ Agent Bridge (canonical adapter) ===\n");
+
+    // Create the adapter using `SmithToolAdapter`
+    let adapter = SmithToolAdapter::from(EchoSmithTool);
+    let spec = adapter.spec();
+    println!("Tool name:        {}", spec.name);
+    println!("Tool description: {}", spec.description);
+    println!("Tool schema:      {}", spec.parameters);
+    println!("Tool category:    {:?}", spec.category);
+
+    // Call the tool through the adapter
+    let result = adapter
+        .call(json!({"message": "Hello from the bridge!"}))
+        .await?;
+    println!("\nResult: {:?}", result);
+
+    // Add to a ToolSet (like an Agent would do)
+    let mut toolset = ToolSet::new();
+    toolset.add(SmithToolAdapter::from(EchoSmithTool));
+
+    println!("\nToolSet has {} tool(s)", toolset.specs().len());
+    for s in toolset.specs() {
+        println!("  - {}: {}", s.name, s.description);
+    }
+
+    let result2 = toolset
+        .execute("smith.echo", json!({"message": "via ToolSet"}))
+        .await?;
+    println!("\nToolSet result: {:?}", result2);
+
+    println!("\n=== Bridge works! Smith tools are usable from agent layer. ===");
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Tests
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use smith_agent::agent::tool::ToolError as AgentToolError;
 
     #[test]
     fn test_adapter_spec_is_correct() {
@@ -148,7 +138,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_adapter_call_via_dyntool() {
-        // Wrap via the DynTool path (the real-world path used by ToolRegistry)
         let adapter = SmithToolAdapter::new(Box::new(EchoSmithTool));
 
         let result = adapter
@@ -160,28 +149,25 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_adapter_in_praxis_toolset() {
-        // Add the wrapped tool to a praxis ToolSet
+    async fn test_adapter_in_agent_toolset() {
         let mut toolset = ToolSet::new();
         toolset.add(SmithToolAdapter::from(EchoSmithTool));
 
-        // Specs include the tool's schema
         let specs = toolset.specs();
         assert_eq!(specs.len(), 1);
         assert_eq!(specs[0].name, "smith.echo");
 
-        // Executing through the praxis ToolSet reaches the smith tool
         let result = toolset
-            .execute("smith.echo", json!({"message": "via praxis"}))
+            .execute("smith.echo", json!({"message": "via toolset"}))
             .await
             .unwrap();
-        assert_eq!(result, json!({"result": "via praxis"}));
+        assert_eq!(result, json!({"result": "via toolset"}));
     }
 
     #[tokio::test]
     async fn test_adapter_error_propagation() {
-        /// A smith tool that always fails.
         struct FailSmithTool;
+
         #[async_trait::async_trait]
         impl SmithTool for FailSmithTool {
             type Input = EchoInput;
@@ -200,8 +186,8 @@ mod tests {
                 _input: EchoInput,
                 _ctx: &mut ExecutionContext,
                 _token: CancellationToken,
-            ) -> Result<EchoOutput, SmithToolError> {
-                Err(SmithToolError::platform_error(
+            ) -> Result<EchoOutput, ToolError> {
+                Err(ToolError::platform_error(
                     "something broke",
                     std::io::Error::new(std::io::ErrorKind::Other, "oh no"),
                     None,
@@ -214,47 +200,7 @@ mod tests {
 
         assert!(result.is_err());
         let err = result.unwrap_err();
-        assert!(matches!(err, PraxisToolError::Execution { .. }));
+        assert!(matches!(err, AgentToolError::Execution { .. }));
         assert!(err.to_string().contains("something broke"));
     }
-}
-
-// ---------------------------------------------------------------------------
-// Entry point (non-test)
-// ---------------------------------------------------------------------------
-
-#[tokio::main]
-async fn main() {
-    println!("=== Smith ↔ Praxis Bridge Demo ===\n");
-
-    // Create the adapter
-    let adapter = SmithToolAdapter::from(EchoSmithTool);
-    let spec = adapter.spec();
-    println!("Tool name:        {}", spec.name);
-    println!("Tool description: {}", spec.description);
-    println!("Tool schema:      {}", spec.parameters);
-
-    // Call the tool through the adapter
-    let result = adapter
-        .call(json!({"message": "Hello from the bridge!"}))
-        .await
-        .unwrap();
-    println!("\nResult: {:?}", result);
-
-    // Add to a praxis ToolSet (like an Agent would do)
-    let mut toolset = ToolSet::new();
-    toolset.add(SmithToolAdapter::from(EchoSmithTool));
-
-    println!("\nToolSet has {} tool(s)", toolset.specs().len());
-    for s in toolset.specs() {
-        println!("  - {}: {}", s.name, s.description);
-    }
-
-    let result2 = toolset
-        .execute("smith.echo", json!({"message": "via ToolSet"}))
-        .await
-        .unwrap();
-    println!("\nToolSet result: {:?}", result2);
-
-    println!("\n=== Bridge works! Smith tools are usable from praxis agents. ===");
 }
