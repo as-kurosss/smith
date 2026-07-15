@@ -38,7 +38,7 @@ fn format_rust(nodes: &[FlowNode]) -> String {
     // Imports
     out.push_str("use serde_json::json;\n");
     out.push_str("use smith_core::RetryPolicy;\n");
-    out.push_str("use smith_graph::{EdgeKind, FlowGraph, Node};\n\n");
+    out.push_str("use smith_workflow::{EdgeKind, FlowGraph, Node};\n\n");
 
     // Builder creation
     out.push_str("let mut g = FlowGraph::builder(\"recorded_flow\");\n");
@@ -108,7 +108,7 @@ mod tests {
         let nodes = sample_nodes();
         let output = format_rust(&nodes);
         assert!(output.contains("use serde_json::json;"));
-        assert!(output.contains("use smith_graph::{EdgeKind, FlowGraph, Node};"));
+        assert!(output.contains("use smith_workflow::{EdgeKind, FlowGraph, Node};"));
     }
 
     #[test]

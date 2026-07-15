@@ -1,15 +1,15 @@
 // crates/smith-ai/src/lib.rs
-//! Rig-based LLM agent.
+//! Minimal LLM client for Q&A, Think, and Decide operations.
+//!
+//! No agent framework dependencies — just direct HTTP calls to
+//! OpenAI and Anthropic chat completion APIs.
 //!
 //! Contains:
-//! - `adapter` — converts smith_core::Tool → rig::tool::Tool
-//! - `agent` — SmithAgent, wrapper over Rig Agent
+//! - `agent` — AiClient trait, OpenAiClient, AnthropicClient, SmithAgent
 //! - `provider` — provider configuration (OpenAI, Anthropic)
 
-pub mod adapter;
 pub mod agent;
 pub mod provider;
 
-pub use adapter::ToolAdapter;
-pub use agent::SmithAgent;
+pub use agent::{AiClient, AnthropicClient, OpenAiClient, SmithAgent, create_client};
 pub use provider::ProviderConfig;

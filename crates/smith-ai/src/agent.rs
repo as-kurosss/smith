@@ -1,16 +1,10 @@
 // crates/smith-ai/src/agent.rs
-//! SmithAgent — wrapper over Rig Agent.
+//! Minimal HTTP-based LLM client for Q&A, Think, and Decide.
+//!
+//! No agent framework dependencies — just direct HTTP calls to
+//! OpenAI and Anthropic chat completion APIs.
 
 use async_trait::async_trait;
-use futures::future::BoxFuture;
-use rig::agent::Agent;
-use rig::agent::PromptHook;
-use rig::client::CompletionClient;
-use rig::completion::CompletionModel;
-use rig::completion::Prompt;
-use rig::providers::anthropic;
-use rig::providers::openai;
-use rig::tool::ToolDyn;
 use serde_json::Value;
 use smith_core::{AiHandler, ExecutionContext, SmithError, SmithResult};
 use tokio_util::sync::CancellationToken;
@@ -18,161 +12,240 @@ use tracing::{info, warn};
 
 use crate::provider::ProviderConfig;
 
-// ---- Type-erased agent ----
+// ---------------------------------------------------------------------------
+// AiClient trait — minimal LLM interface
+// ---------------------------------------------------------------------------
 
-trait AgentLike: Send + Sync {
-    fn prompt<'a>(&'a self, prompt: &'a str) -> BoxFuture<'a, Result<String, SmithError>>;
+/// Minimal async LLM completion trait.
+///
+/// Implementations make a bare HTTP POST to the provider's chat completions
+/// endpoint and return the response text.  No agent loop, no tool calling.
+#[async_trait]
+pub trait AiClient: Send + Sync {
+    /// Send a prompt and return the text response.
+    async fn complete(&self, prompt: &str) -> Result<String, SmithError>;
 }
 
-impl<M, P> AgentLike for Agent<M, P>
-where
-    M: CompletionModel + Send + Sync + 'static,
-    P: PromptHook<M> + Send + Sync + 'static,
-{
-    fn prompt<'a>(&'a self, prompt: &'a str) -> BoxFuture<'a, Result<String, SmithError>> {
-        Box::pin(async move {
-            Prompt::prompt(self, prompt)
-                .await
-                .map_err(|e| SmithError::Other(anyhow::anyhow!("Rig agent error: {e}")))
-        })
-    }
+// ---------------------------------------------------------------------------
+// OpenAI implementation
+// ---------------------------------------------------------------------------
+
+/// OpenAI / OpenAI-compatible chat completion client.
+pub struct OpenAiClient {
+    http: reqwest::Client,
+    api_key: String,
+    model: String,
+    base_url: String,
 }
 
-// ---- Public API ----
-
-/// SmithAgent — wrapper over Rig Agent.
-pub struct SmithAgent {
-    inner: Box<dyn AgentLike>,
-}
-
-impl SmithAgent {
-    /// Creates a builder.
-    pub fn builder(provider: ProviderConfig) -> SmithAgentBuilder {
-        SmithAgentBuilder {
-            provider,
-            tools: vec![],
-            system_prompt: None,
-        }
-    }
-
-    /// Executes a prompt in free mode (without workflow).
-    pub async fn prompt(&self, prompt: &str) -> Result<String, SmithError> {
-        self.inner.prompt(prompt).await
-    }
-}
-
-/// Builder for SmithAgent.
-pub struct SmithAgentBuilder {
-    provider: ProviderConfig,
-    tools: Vec<Box<dyn ToolDyn>>,
-    system_prompt: Option<String>,
-}
-
-impl SmithAgentBuilder {
-    /// Adds tools.
-    pub fn with_tools(mut self, tools: Vec<Box<dyn ToolDyn>>) -> Self {
-        self.tools.extend(tools);
-        self
-    }
-
-    /// Sets the system prompt.
-    pub fn system_prompt(mut self, prompt: &str) -> Self {
-        self.system_prompt = Some(prompt.to_string());
-        self
-    }
-
-    /// Builds the SmithAgent.
-    ///
-    /// # Errors
-    ///
-    /// Returns `SmithError` if the Rig Agent could not be created.
-    pub fn build(self) -> Result<SmithAgent, SmithError> {
-        let preamble = self.system_prompt.unwrap_or_default();
-
-        let SmithAgentBuilder {
-            provider,
-            tools,
-            system_prompt: _,
-        } = self;
-
-        let inner: Box<dyn AgentLike> = match &provider {
+impl OpenAiClient {
+    /// Create a new OpenAI client from provider config.
+    #[must_use]
+    pub fn new(config: &ProviderConfig) -> Option<Self> {
+        let (api_key, model, base_url) = match config {
             ProviderConfig::OpenAi {
                 api_key,
                 model,
                 base_url,
-            } => {
-                let mut builder = openai::Client::builder().api_key(api_key.clone());
-                if let Some(url) = base_url {
-                    builder = builder.base_url(url);
-                }
-                let client = builder.build().map_err(|e| {
-                    SmithError::Other(anyhow::anyhow!("Failed to create OpenAI client: {e}"))
-                })?;
-
-                Box::new(
-                    client
-                        .completions_api()
-                        .agent(model)
-                        .preamble(&preamble)
-                        .tools(tools)
-                        .default_max_turns(10)
-                        .build(),
-                )
-            }
-            ProviderConfig::Anthropic {
-                api_key,
-                model,
-                base_url,
-            } => {
-                let mut builder = anthropic::Client::builder().api_key(api_key.clone());
-                if let Some(url) = base_url {
-                    builder = builder.base_url(url);
-                }
-                let client = builder.build().map_err(|e| {
-                    SmithError::Other(anyhow::anyhow!("Failed to create Anthropic client: {e}"))
-                })?;
-
-                Box::new(
-                    client
-                        .agent(model)
-                        .preamble(&preamble)
-                        .tools(tools)
-                        .default_max_turns(10)
-                        .build(),
-                )
-            }
+            } => (
+                api_key.clone(),
+                model.clone(),
+                base_url
+                    .clone()
+                    .unwrap_or_else(|| "https://api.openai.com/v1".to_string()),
+            ),
             ProviderConfig::OpenAiCompatible {
                 api_key,
                 model,
                 base_url,
-            } => {
-                let client = openai::Client::builder()
-                    .api_key(api_key.clone())
-                    .base_url(base_url)
-                    .build()
-                    .map_err(|e| {
-                        SmithError::Other(anyhow::anyhow!(
-                            "Failed to create OpenAI-compatible client: {e}"
-                        ))
-                    })?;
-
-                Box::new(
-                    client
-                        .completions_api()
-                        .agent(model)
-                        .preamble(&preamble)
-                        .tools(tools)
-                        .default_max_turns(10)
-                        .build(),
-                )
-            }
+            } => (api_key.clone(), model.clone(), base_url.clone()),
+            _ => return None,
         };
-
-        Ok(SmithAgent { inner })
+        Some(Self {
+            http: reqwest::Client::new(),
+            api_key,
+            model,
+            base_url,
+        })
     }
 }
 
-// ---- AiHandler ----
+#[async_trait]
+impl AiClient for OpenAiClient {
+    async fn complete(&self, prompt: &str) -> Result<String, SmithError> {
+        let url = format!("{}/chat/completions", self.base_url.trim_end_matches('/'));
+        let body = serde_json::json!({
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.7,
+            "max_tokens": 4096,
+        });
+
+        let resp = self
+            .http
+            .post(&url)
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| SmithError::Other(anyhow::anyhow!("OpenAI request failed: {e}")))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let text = resp
+                .text()
+                .await
+                .unwrap_or_else(|_| "<no body>".to_string());
+            return Err(SmithError::Other(anyhow::anyhow!(
+                "OpenAI error {status}: {text}"
+            )));
+        }
+
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| SmithError::Other(anyhow::anyhow!("OpenAI parse failed: {e}")))?;
+
+        let text = data["choices"][0]["message"]["content"]
+            .as_str()
+            .ok_or_else(|| {
+                SmithError::Other(anyhow::anyhow!("OpenAI response missing content: {data}"))
+            })?;
+
+        Ok(text.to_string())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Anthropic implementation
+// ---------------------------------------------------------------------------
+
+/// Anthropic Claude chat completion client.
+pub struct AnthropicClient {
+    http: reqwest::Client,
+    api_key: String,
+    model: String,
+    base_url: String,
+}
+
+impl AnthropicClient {
+    /// Create a new Anthropic client from provider config.
+    #[must_use]
+    pub fn new(config: &ProviderConfig) -> Option<Self> {
+        match config {
+            ProviderConfig::Anthropic {
+                api_key,
+                model,
+                base_url,
+            } => Some(Self {
+                http: reqwest::Client::new(),
+                api_key: api_key.clone(),
+                model: model.clone(),
+                base_url: base_url
+                    .clone()
+                    .unwrap_or_else(|| "https://api.anthropic.com".to_string()),
+            }),
+            _ => None,
+        }
+    }
+}
+
+#[async_trait]
+impl AiClient for AnthropicClient {
+    async fn complete(&self, prompt: &str) -> Result<String, SmithError> {
+        let url = format!("{}/v1/messages", self.base_url.trim_end_matches('/'));
+        let body = serde_json::json!({
+            "model": self.model,
+            "max_tokens": 4096,
+            "messages": [{"role": "user", "content": prompt}],
+        });
+
+        let resp = self
+            .http
+            .post(&url)
+            .header("x-api-key", &self.api_key)
+            .header("anthropic-version", "2023-06-01")
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| SmithError::Other(anyhow::anyhow!("Anthropic request failed: {e}")))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let text = resp
+                .text()
+                .await
+                .unwrap_or_else(|_| "<no body>".to_string());
+            return Err(SmithError::Other(anyhow::anyhow!(
+                "Anthropic error {status}: {text}"
+            )));
+        }
+
+        let data: Value = resp
+            .json()
+            .await
+            .map_err(|e| SmithError::Other(anyhow::anyhow!("Anthropic parse failed: {e}")))?;
+
+        let text = data["content"][0]["text"].as_str().ok_or_else(|| {
+            SmithError::Other(anyhow::anyhow!("Anthropic response missing text: {data}"))
+        })?;
+
+        Ok(text.to_string())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Factory
+// ---------------------------------------------------------------------------
+
+/// Create an [`AiClient`] from provider configuration.
+#[must_use]
+pub fn create_client(config: &ProviderConfig) -> Box<dyn AiClient> {
+    match config {
+        ProviderConfig::OpenAi { .. } | ProviderConfig::OpenAiCompatible { .. } => {
+            Box::new(OpenAiClient::new(config).expect("OpenAiClient creation"))
+        }
+        ProviderConfig::Anthropic { .. } => {
+            Box::new(AnthropicClient::new(config).expect("AnthropicClient creation"))
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SmithAgent — minimal agent that implements AiHandler
+// ---------------------------------------------------------------------------
+
+/// Minimal LLM agent for Q&A, Think, and Decide operations.
+///
+/// Unlike the Rig-based predecessor this agent makes a single HTTP call
+/// per invocation — no agent loop, no tool calling.
+pub struct SmithAgent {
+    client: Box<dyn AiClient>,
+}
+
+impl SmithAgent {
+    /// Create a new agent from provider configuration.
+    #[must_use]
+    pub fn new(config: ProviderConfig) -> Self {
+        Self {
+            client: create_client(&config),
+        }
+    }
+
+    /// Execute a simple prompt and return the text response.
+    ///
+    /// # Errors
+    /// Returns an error if the LLM request fails.
+    pub async fn prompt(&self, prompt: &str) -> Result<String, SmithError> {
+        self.client.complete(prompt).await
+    }
+}
+
+// ---------------------------------------------------------------------------
+// AiHandler implementation (for smith-graph compatibility)
+// ---------------------------------------------------------------------------
 
 #[async_trait]
 impl AiHandler for SmithAgent {
@@ -185,31 +258,28 @@ impl AiHandler for SmithAgent {
         token: &CancellationToken,
     ) -> SmithResult<Value> {
         if token.is_cancelled() {
-            return Err(smith_core::SmithError::Cancelled);
+            return Err(SmithError::Cancelled);
         }
 
         if !tools.is_empty() {
             warn!(
-                "Agent step requested specific tools {:?}, but SmithAgent uses all built-in tools; consider configuring tools at build time",
+                "Agent step requested specific tools {:?}, but smith-ai has no tool support; \
+                 use smith-agent for tool-calling agents",
                 tools
             );
         }
 
         info!("Agent step: {prompt}");
-        let result = self.prompt(prompt).await.map_err(|e| {
-            smith_core::SmithError::Other(anyhow::anyhow!("Agent prompt failed: {e}"))
-        })?;
+        let result = self.prompt(prompt).await?;
 
         ctx.set(
             "last_agent_result",
             smith_core::ContextValue::String(result.clone()),
         );
 
-        // Quick heuristic: only try JSON parse if response looks like JSON
         let trimmed = result.trim_start();
-        let looks_like_json = trimmed.starts_with('{') || trimmed.starts_with('[');
         #[allow(clippy::collapsible_if)]
-        if looks_like_json {
+        if trimmed.starts_with('{') || trimmed.starts_with('[') {
             if let Ok(val) = serde_json::from_str::<Value>(&result) {
                 return Ok(val);
             }
@@ -226,7 +296,7 @@ impl AiHandler for SmithAgent {
         token: &CancellationToken,
     ) -> SmithResult<Value> {
         if token.is_cancelled() {
-            return Err(smith_core::SmithError::Cancelled);
+            return Err(SmithError::Cancelled);
         }
 
         let full_prompt = if schema.is_object() || schema.is_array() {
@@ -239,16 +309,13 @@ impl AiHandler for SmithAgent {
         };
 
         info!("Think step: {prompt}");
-        let result = self.prompt(&full_prompt).await.map_err(|e| {
-            smith_core::SmithError::Other(anyhow::anyhow!("Think prompt failed: {e}"))
-        })?;
+        let result = self.prompt(&full_prompt).await?;
 
         ctx.set(
             "last_think_result",
             smith_core::ContextValue::String(result.clone()),
         );
 
-        // Quick heuristic: only try JSON parse if response looks like JSON
         let trimmed = result.trim_start();
         if (trimmed.starts_with('{') || trimmed.starts_with('['))
             && let Ok(val) = serde_json::from_str::<Value>(&result)
@@ -267,11 +334,11 @@ impl AiHandler for SmithAgent {
         token: &CancellationToken,
     ) -> SmithResult<String> {
         if token.is_cancelled() {
-            return Err(smith_core::SmithError::Cancelled);
+            return Err(SmithError::Cancelled);
         }
 
         if options.is_empty() {
-            return Err(smith_core::SmithError::InvalidParams(
+            return Err(SmithError::InvalidParams(
                 "Decide step must have at least one option".into(),
             ));
         }
@@ -282,9 +349,7 @@ impl AiHandler for SmithAgent {
         );
 
         info!("Decide step: {prompt}");
-        let result = self.prompt(&full_prompt).await.map_err(|e| {
-            smith_core::SmithError::Other(anyhow::anyhow!("Decide prompt failed: {e}"))
-        })?;
+        let result = self.prompt(&full_prompt).await?;
 
         let trimmed = result.trim().trim_matches('"').to_string();
         if options.iter().any(|o| o == &trimmed) {
@@ -298,33 +363,37 @@ impl AiHandler for SmithAgent {
                 "LLM returned invalid option '{}', expected one of {:?}",
                 trimmed, options
             );
-            Err(smith_core::SmithError::InvalidParams(format!(
+            Err(SmithError::InvalidParams(format!(
                 "LLM returned invalid option '{trimmed}', expected one of {options:?}"
             )))
         }
     }
 }
 
+// ---------------------------------------------------------------------------
+// Tests (mocked, no HTTP calls)
+// ---------------------------------------------------------------------------
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use smith_core::{Ready, Unvalidated};
 
-    /// Mock AgentLike that returns preset responses.
-    struct MockAgent {
+    /// Mock client that returns preset responses.
+    struct MockClient {
         response: String,
     }
 
-    impl AgentLike for MockAgent {
-        fn prompt<'a>(&'a self, _prompt: &'a str) -> BoxFuture<'a, Result<String, SmithError>> {
-            let response = self.response.clone();
-            Box::pin(async move { Ok(response) })
+    #[async_trait]
+    impl AiClient for MockClient {
+        async fn complete(&self, _prompt: &str) -> Result<String, SmithError> {
+            Ok(self.response.clone())
         }
     }
 
     fn make_agent(response: &str) -> SmithAgent {
         SmithAgent {
-            inner: Box::new(MockAgent {
+            client: Box::new(MockClient {
                 response: response.to_string(),
             }),
         }
@@ -403,7 +472,7 @@ mod tests {
             .decide("choose", &["a".into(), "b".into()], &mut ctx, &cancelled)
             .await;
 
-        assert!(matches!(result, Err(smith_core::SmithError::Cancelled)));
+        assert!(matches!(result, Err(SmithError::Cancelled)));
     }
 
     #[tokio::test]
@@ -414,10 +483,7 @@ mod tests {
 
         let result = agent.decide("choose", &[], &mut ctx, &token).await;
 
-        assert!(matches!(
-            result,
-            Err(smith_core::SmithError::InvalidParams(_))
-        ));
+        assert!(matches!(result, Err(SmithError::InvalidParams(_))));
     }
 
     #[tokio::test]
@@ -455,10 +521,7 @@ mod tests {
             )
             .await;
 
-        assert!(matches!(
-            result,
-            Err(smith_core::SmithError::InvalidParams(_))
-        ));
+        assert!(matches!(result, Err(SmithError::InvalidParams(_))));
     }
 
     #[tokio::test]

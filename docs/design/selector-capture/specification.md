@@ -138,7 +138,7 @@ After Ctrl+Shift+F2, output according to `--format`:
 ```rust
 use serde_json::json;
 use smith_core::RetryPolicy;
-use smith_graph::{EdgeKind, FlowGraph, Node};
+use smith_workflow::{EdgeKind, FlowGraph, Node};
 
 let mut g = FlowGraph::builder("recorded_flow");
 let n0 = g.add_node(Node::rpa("windows.find", json!({"output_key":"el_01","name":"Submit","control_type":"Button"})));

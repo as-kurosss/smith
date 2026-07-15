@@ -5,7 +5,7 @@
 //!
 //! ```ignore
 //! use smith_rpa::windows;
-//! use smith_graph::{FlowGraph, EdgeKind};
+//! use smith_workflow::{FlowGraph, EdgeKind};
 //!
 //! let mut b = FlowGraph::builder("demo");
 //! let find = b.add_node(windows::find("name=Notepad", "found_element"));
@@ -16,7 +16,7 @@
 
 use serde_json::json;
 use smith_core::RetryPolicy;
-use smith_graph::node::Node;
+use smith_workflow::node::Node;
 
 /// Creates a `Node::Rpa` for finding a UI element.
 ///

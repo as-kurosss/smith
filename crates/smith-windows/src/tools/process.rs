@@ -232,8 +232,9 @@ impl Tool for ProcessTool {
 
         // 3. Optional delay after execution (only on success)
         if result.is_ok()
-            && let Some(ms) = input.delay_after_ms.filter(|&ms| ms > 0) {
-                tokio::time::sleep(std::time::Duration::from_millis(ms)).await;
+            && let Some(ms) = input.delay_after_ms.filter(|&ms| ms > 0)
+        {
+            tokio::time::sleep(std::time::Duration::from_millis(ms)).await;
         }
 
         result

@@ -27,8 +27,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
     use smith_ai::SmithAgent;
     use smith_core::{AiHandler, ExecutionContext, Ready, ToolRegistry, Unvalidated};
-    use smith_graph::{EdgeKind, FlowGraph, GraphExecutor, Node, RetryPolicy};
     use smith_windows::tools::{FindTool, ProcessTool, SetTextTool, WaitTool};
+    use smith_workflow::{EdgeKind, FlowGraph, GraphExecutor, Node, RetryPolicy};
     use tokio_util::sync::CancellationToken;
 
     // -- API key --
@@ -41,13 +41,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     registry.register(ProcessTool::new());
     registry.register(WaitTool::new());
 
-    // -- Create AI agent --
-    let provider = smith_ai::ProviderConfig::openai(api_key)
-        .with_model("mimo-v2.5")
-        .with_base_url("https://opencode.ai/zen/go/v1");
-    let ai_agent = SmithAgent::builder(provider)
-        .system_prompt("You are an automation assistant specialized in Windows UI Automation.")
-        .build()?;
+    // -- Create AI agent (Q&A only, no tool loop) --
+    let provider = smith_ai::ProviderConfig::openai(api_key).with_model("gpt-4o-mini");
+    let ai_agent = SmithAgent::new(provider);
 
     // -- Build FlowGraph --
     let mut b = FlowGraph::builder("notepad_flowgraph");

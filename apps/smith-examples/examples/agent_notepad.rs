@@ -1,7 +1,7 @@
-//! # Example 2: Pure AI Agent
+//! # Example 2: Q&A with AI (no agent loop)
 //!
-//! LLM (via Rig) receives tools and decides on its own
-//! in what order to call them for opening Notepad, typing text, and closing.
+//! Minimal LLM call — smith-ai is for simple Q&A, not agentic tool use.
+//! For tool-calling agents, use `smith-agent` (formerly praxis).
 //!
 //! ## Run
 //! ```bash
@@ -13,74 +13,20 @@
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
-    use std::sync::Arc;
+    use smith_ai::ProviderConfig;
+    use smith_ai::SmithAgent;
 
-    use rig::tool::ToolDyn;
-    use smith_ai::{ProviderConfig, ToolAdapter};
-    use smith_core::{ExecutionContext, Unvalidated};
-    use smith_windows::tools::{FindTool, ProcessTool, SetTextTool};
-    use tokio::sync::Mutex;
-    use tokio_util::sync::CancellationToken;
-
-    // -- API key --
     let api_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
 
-    // -- ExecutionContext shared between tools --
-    let ctx = Arc::new(Mutex::new(
-        ExecutionContext::<Unvalidated>::new().validate(),
-    ));
-    let token = CancellationToken::new();
+    let provider = ProviderConfig::openai(api_key).with_model("gpt-4o-mini");
 
-    // -- Wrap Windows tools into Rig-compatible adapters --
-    let tools: Vec<Box<dyn ToolDyn>> = vec![
-        Box::new(ToolAdapter::new(
-            FindTool::new(),
-            ctx.clone(),
-            token.clone(),
-        )),
-        Box::new(ToolAdapter::new(
-            SetTextTool::new(),
-            ctx.clone(),
-            token.clone(),
-        )),
-        Box::new(ToolAdapter::new(
-            ProcessTool::new(),
-            ctx.clone(),
-            token.clone(),
-        )),
-    ];
+    let agent = SmithAgent::new(provider);
 
-    // -- Build the agent --
-    let provider = ProviderConfig::openai(api_key)
-        .with_model("mimo-v2.5")
-        .with_base_url("https://opencode.ai/zen/go/v1");
-
-    let agent = smith_ai::SmithAgent::builder(provider)
-        .system_prompt(
-            "You are a Windows automation assistant. \
-             You have access to tools:\n\
-             - `windows.process` — start or stop an application\n\
-             - `windows.find` — find a UI element on the screen\n\
-             - `windows.set_text` — set text value of a UI element\n\n\
-             When asked to automate Notepad:\n\
-             1. Start Notepad with `windows.process`\n\
-             2. Find the Edit field by class_name=\"Edit\" with `windows.find`\n\
-             3. Type text with `windows.set_text` using element_key from step 2\n\
-             4. Close Notepad with `windows.process` stop",
-        )
-        .with_tools(tools)
-        .build()?;
-
-    // -- Run (LLM plans and calls tools on its own) --
     let result = agent
-        .prompt(
-            "Open Notepad, type 'Hello from AI Agent!' in the text field, \
-             then close Notepad.",
-        )
+        .prompt("What are the steps to automate Notepad on Windows using UI Automation?")
         .await?;
 
-    println!("✅ Agent response: {result}");
-
+    println!("AI says:\n{result}");
     Ok(())
 }
 

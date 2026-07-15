@@ -1,0 +1,17 @@
+//! # Praxis Runtime — concrete implementations for the Agent system.
+//!
+//! This crate provides:
+//! * [`OpenAiClient`] — an OpenAI-compatible [`LlmClient`](smith_agent::agent::LlmClient)
+//!   implementation that works with any OpenAI-compatible API.
+//! * [`AnthropicClient`] — an [`LlmClient`](smith_agent::agent::LlmClient)
+//!   implementation for Anthropic's Messages API.
+
+pub mod anthropic;
+pub mod gemini;
+pub mod openai;
+pub mod provider_factory;
+
+pub use anthropic::*;
+pub use gemini::*;
+pub use openai::*;
+pub use provider_factory::*;
