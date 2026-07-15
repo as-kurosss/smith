@@ -1,4 +1,4 @@
-# smith-automation
+# Smith
 
 **Smith** — A Rust library for programmatic UI automation on Windows.
 
@@ -30,10 +30,17 @@ crates/
 ├── smith-windows/      # Windows UI Automation tools
 ├── smith-rpa/          # Type-safe Node::Rpa constructors
 ├── smith-ai/           # Rig-based LLM agent
-└── smith-graph/        # FlowGraph execution engine
+├── smith-workflow/     # FlowGraph execution engine
+├── smith-agent/        # Agent lifecycle and orchestration
+├── smith-cli/          # CLI entrypoint
+├── smith-mcp/          # MCP protocol integration
+├── smith-observe/      # Observability (tracing, metrics)
+├── smith-providers/    # LLM provider adapters
+└── smith-server/       # HTTP server for remote control
 apps/
-├── smith-examples/     # Example applications
-└── selector-capture/   # UI selector capture utility
+├── selector-capture/   # UI selector capture utility
+├── smith-context/      # Context management app
+└── smith-examples/     # Example applications
 ```
 
 | Crate | Description |
@@ -42,8 +49,15 @@ apps/
 | **smith-windows** | UI Automation tools (`ClickTool`, `FindTool`, `InputTextTool`, `ProcessTool`, `SetTextTool`, `WaitTool`) |
 | **smith-rpa** | Type-safe `Node::Rpa` constructors by domain (windows) |
 | **smith-ai** | Rig-based LLM agent wrapper (`SmithAgent`) |
-| **smith-graph** | FlowGraph — graph execution engine with error handling and routing |
+| **smith-workflow** | FlowGraph — graph execution engine with error handling and routing |
+| **smith-agent** | Agent lifecycle, tool orchestration, and session management |
+| **smith-cli** | CLI entrypoint, configuration, and argument parsing |
+| **smith-mcp** | MCP server and protocol implementation |
+| **smith-observe** | OpenTelemetry tracing, logging, and metrics |
+| **smith-providers** | LLM provider adapters (Anthropic, OpenAI, etc.) |
+| **smith-server** | HTTP API server for remote agent control |
 | **smith-examples** | Example apps: pure RPA, AI agent, FlowGraph, combined workflow |
+| **smith-context** | Context management utilities for agent workflows |
 | **selector-capture** | UI element selector capture utility |
 
 ## Build
