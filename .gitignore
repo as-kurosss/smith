@@ -29,3 +29,9 @@ smith-graphify/
 # Environment variables (user-local, contains secrets)
 .env
 .env.local
+
+# Node.js dependencies
+node_modules/
+
+# Build output
+dist/
