@@ -126,7 +126,7 @@ export default function App() {
       {/* Sidebar */}
       {sidebarVisible && (
         <div className="w-72 min-w-72 bg-paper border-r border-mist flex flex-col">
-          <div className="px-5 py-4 border-b border-mist flex items-center gap-2">
+          <div className="px-5 py-5 border-b border-mist flex items-center gap-2.5">
             <div className="w-7 h-7 bg-sage-teal rounded-lg flex items-center justify-center text-white text-body-sm font-semibold">S</div>
             <div>
               <h1 className="text-heading-sm font-semibold text-graphite tracking-tight">Smith</h1>
@@ -145,7 +145,7 @@ export default function App() {
               }`}
               onClick={() => setTab('providers')}>Providers</div>
           </div>
-          <div className={`flex-1 overflow-y-auto px-3 py-3 ${tab === 'agents' ? 'block' : 'hidden'}`}>
+          <div className={`flex-1 overflow-y-auto px-3 py-4 ${tab === 'agents' ? 'block' : 'hidden'}`}>
             <AgentsPanel
               agents={agents}
               providers={providers}
@@ -155,7 +155,7 @@ export default function App() {
               addToast={addToast}
             />
           </div>
-          <div className={`flex-1 overflow-y-auto px-3 py-3 ${tab === 'providers' ? 'block' : 'hidden'}`}>
+          <div className={`flex-1 overflow-y-auto px-3 py-4 ${tab === 'providers' ? 'block' : 'hidden'}`}>
             <ProvidersPanel
               providers={providers}
               onRefresh={loadProviders}
@@ -174,7 +174,7 @@ export default function App() {
                 ☰
               </button>
             )}
-            <span id="active-agent-name" className="text-body font-medium text-graphite">
+          <span id="active-agent-name" className="text-body font-medium text-graphite ml-1">
               {selectedAgent ? selectedAgent.name : 'Select an agent'}
             </span>
             {selectedAgent && (

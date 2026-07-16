@@ -244,7 +244,7 @@ export function ChatArea({ agentId, sessionId, messages, onMessagesChange, onSes
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-2" ref={chatRef}>
+      <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 flex flex-col gap-3" ref={chatRef}>
         {messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <h3 className="text-body font-semibold text-graphite mb-2">Start a conversation</h3>
@@ -253,13 +253,13 @@ export function ChatArea({ agentId, sessionId, messages, onMessagesChange, onSes
         ) : (
           messages.map((msg, i) => {
             if (msg.role === 'user') {
-              return <div key={i} className="max-w-[80%] px-3.5 py-2.5 rounded-lg text-body-sm leading-relaxed whitespace-pre-wrap break-words self-end bg-veil text-graphite">{msg.content}</div>
+              return <div key={i} className="max-w-[80%] px-4 py-3 rounded-lg text-body-sm leading-relaxed whitespace-pre-wrap break-words self-end bg-veil text-graphite">{msg.content}</div>
             } else if (msg.role === 'assistant') {
               const isLast = i === messages.length - 1
               const isStreamingAssistant = streaming && isLast
               const isReasoningExpanded = expandedReasoning === i
               return (
-                <div key={i} className={`max-w-[80%] px-3.5 py-2.5 rounded-lg text-body-sm leading-relaxed whitespace-pre-wrap break-words self-start bg-paper border border-cloud text-graphite${isStreamingAssistant ? ' border-l-2 border-sage-teal' : ''}`}>
+                <div key={i} className={`max-w-[80%] px-4 py-3 rounded-lg text-body-sm leading-relaxed whitespace-pre-wrap break-words self-start bg-paper border border-cloud text-graphite${isStreamingAssistant ? ' border-l-2 border-sage-teal' : ''}`}>
                   {msg.reasoning_content && (
                     <div className="reasoning-block">
                       <div
