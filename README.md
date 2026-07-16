@@ -1,6 +1,8 @@
 # Smith
 
-**Smith** — A Rust library for programmatic UI automation on Windows.
+**Smith** — A Rust framework for building AI agents with Windows UI automation capabilities.
+
+Smith provides a layered architecture for creating autonomous agents — from simple tool-calling loops to multi-agent orchestration with workflow graphs, memory, and undo support — all with first-class Windows UI Automation (UIA) integration.
 
 ```rust
 use smith_core::{ExecutionContext, ToolRegistry};
