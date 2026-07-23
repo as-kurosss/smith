@@ -151,6 +151,27 @@ export interface MemorySearchResult {
   timestamp: string;
 }
 
+export interface CronJobDefinition {
+  id: string;
+  name: string;
+  description?: string | null;
+  schedule: string; // cron expression
+  agent_id?: string | null;
+  task_type: 'text' | 'agent';
+  content?: string | null;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkspaceFile {
+  path: string;
+  name: string;
+  is_dir: boolean;
+  size?: number | null;
+  modified_at?: string | null;
+}
+
 export const BUILTIN_TOOLS = [
   { name: 'calculator', description: 'Performs arithmetic calculations' },
   { name: 'time', description: 'Gets the current time' },

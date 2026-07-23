@@ -1,4 +1,4 @@
-//! **AppState** — shared application state for the Praxis API server.
+//! **AppState** — shared application state for the Smith API server.
 //!
 //! Manages the persistent agent registry and session store.
 
@@ -39,7 +39,7 @@ pub struct ServerSettings {
     /// New agents inherit this as their tool_result_cap.
     #[serde(default)]
     pub default_tool_result_cap: Option<usize>,
-    /// Whether env-gates (e.g. PRAXIS_ALLOW_UNSANDBOXED_RECALL) are active.
+    /// Whether env-gates (e.g. SMITH_ALLOW_UNSANDBOXED_RECALL) are active.
     #[serde(default = "default_true")]
     pub env_gate_enabled: bool,
 }
@@ -127,12 +127,12 @@ impl AppState {
 
         let provider_registry = Arc::new(smith_providers::register_default_factories());
 
-        let request_timeout_seconds = std::env::var("PRAXIS_TIMEOUT")
+        let request_timeout_seconds = std::env::var("SMITH_TIMEOUT")
             .ok()
             .and_then(|v| v.parse().ok())
             .unwrap_or(30);
 
-        let owner_id = std::env::var("PRAXIS_OWNER").unwrap_or_default();
+        let owner_id = std::env::var("SMITH_OWNER").unwrap_or_default();
 
         let approvals = PendingApprovalStore::new();
 
@@ -207,7 +207,7 @@ impl AppState {
     /// Create a minimal state for integration testing (uses temp directory).
     #[cfg(test)]
     pub fn test() -> Self {
-        let tmp = std::env::temp_dir().join(format!("praxis-api-test-{}", uuid::Uuid::new_v4()));
+        let tmp = std::env::temp_dir().join(format!("smith-api-test-{}", uuid::Uuid::new_v4()));
         Self::new(tmp).expect("failed to create test AppState")
     }
 }

@@ -1,6 +1,6 @@
-//! `praxis skills` — skill management subcommands.
+//! `smith skills` — skill management subcommands.
 //!
-//! Provides `praxis skills info <name>` to display skill details.
+//! Provides `smith skills info <name>` to display skill details.
 
 use clap::{Args, Subcommand};
 use smith_agent::registry::AgentRegistry;
@@ -34,15 +34,15 @@ pub struct SkillsInfoArgs {
 fn default_data_dir() -> std::path::PathBuf {
     if cfg!(windows) {
         if let Some(appdata) = std::env::var_os("APPDATA") {
-            std::path::PathBuf::from(appdata).join("praxis")
+            std::path::PathBuf::from(appdata).join("smith")
         } else {
-            std::path::PathBuf::from(".").join(".praxis")
+            std::path::PathBuf::from(".").join(".smith")
         }
     } else {
         if let Some(home) = std::env::var_os("HOME") {
-            std::path::PathBuf::from(home).join(".praxis")
+            std::path::PathBuf::from(home).join(".smith")
         } else {
-            std::path::PathBuf::from(".").join(".praxis")
+            std::path::PathBuf::from(".").join(".smith")
         }
     }
 }
@@ -180,7 +180,7 @@ pub fn execute_info(args: &SkillsInfoArgs) {
                 }
             } else {
                 eprintln!("No skills (agent definitions) registered yet.");
-                eprintln!("Tip: create one with `praxis agents create --name ... --provider ...`");
+                eprintln!("Tip: create one with `smith agents create --name ... --provider ...`");
             }
         }
     }

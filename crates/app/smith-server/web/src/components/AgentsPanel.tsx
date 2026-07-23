@@ -1,5 +1,12 @@
 import { useState } from 'react'
 import * as api from '../api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import type { AgentSummary, AgentDefinition, ProviderConfig, ToolBinding, ScrollConfig } from '../types'
 
 interface Props {
@@ -153,115 +160,126 @@ export function AgentsPanel({ agents, providers, selectedAgent, onSelect, onRefr
 
   return (
     <>
-      <button className="bg-sage-teal text-white rounded-lg px-4 py-2 font-inter text-body-sm font-medium cursor-pointer transition hover:opacity-90 w-full mb-2 border-none" onClick={openCreate}>
-        + New Agent
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <p className="text-body-sm text-slate">Manage AI agents — each agent can use a different provider, system prompt, and set of tools.</p>
+        </div>
+        <Button onClick={openCreate} className="shrink-0">+ New Agent</Button>
+      </div>
 
       {agents.length === 0 ? (
-        <div className="text-center px-5 py-10 text-body-sm text-slate"><p>No agents yet.<br />Create one to get started.</p></div>
+        <div className="text-center py-16">
+          <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center text-2xl mx-auto mb-4">🤖</div>
+          <h3 className="text-subheading font-semibold text-graphite mb-2">No Agents</h3>
+          <p className="text-body-sm text-slate mb-4">Create your first agent to start automating tasks.</p>
+          <Button variant="outline" onClick={openCreate}>+ New Agent</Button>
+        </div>
       ) : (
-        agents.map(a => (
-          <div key={a.id}
-            className={`bg-paper rounded-lg shadow-sm border px-3 py-2.5 mb-1.5 cursor-pointer transition ${
-              selectedAgent?.id === a.id ? 'border-sage-teal bg-[#f0faf8]' : 'border-cloud hover:border-sage-teal'
-            }`}
-            onClick={() => onSelect(a)}
-            onDoubleClick={() => openEdit(a.id)}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <label className="cursor-pointer flex items-center"
-                  onClick={e => { e.stopPropagation(); toggleEnabled(a.id) }}>
-                  <input type="checkbox" checked={agentEnabled[a.id] !== false} readOnly
-                    className="cursor-pointer accent-sage-teal" />
-                </label>
-                <h3 className="text-body-sm font-semibold text-graphite">{a.name}</h3>
+        <div className="grid grid-cols-2 gap-4">
+          {agents.map((a, idx) => {
+            const isDisabled = agentEnabled[a.id] === false
+            const provider = providers.find(p => p.id === a.provider_id)
+            return (
+              <div key={a.id}
+                style={{ animationDelay: `${idx * 60}ms` }}
+                className={`bg-white rounded-xl border px-5 py-4 cursor-pointer transition-all duration-200 animate-fade-in-up card-shadow ${
+                  selectedAgent?.id === a.id ? 'border-sage-teal bg-sage-veil' : isDisabled ? 'border-sage-cloud opacity-60' : 'border-sage-cloud hover:card-shadow hover:-translate-y-0.5'
+                }`}
+                onClick={() => onSelect(a)}
+                onDoubleClick={() => openEdit(a.id)}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${isDisabled ? 'bg-slate-300' : 'bg-green-400'}`} />
+                    <h3 className="text-body-sm font-semibold text-graphite">{a.name}</h3>
+                  </div>
+                  <div className="flex gap-0.5">
+                    <Button variant="ghost" size="icon-sm"
+                      onClick={e => { e.stopPropagation(); openEdit(a.id) }}
+                      title="Edit" className="opacity-0 group-hover:opacity-100">✎</Button>
+                    <Button variant="ghost" size="icon-sm" className="text-red-400 hover:text-red-500"
+                      onClick={e => { e.stopPropagation(); remove(a.id) }}>✕</Button>
+                  </div>
+                </div>
+                <p className="text-caption text-slate line-clamp-2 mb-3">{a.system_prompt}</p>
+                <div className="flex items-center gap-3 text-caption text-fog">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-sage-veil">{provider?.label || a.provider_id}</span>
+                  <span>{a.tool_count} tools</span>
+              <Switch checked={!isDisabled} onCheckedChange={() => toggleEnabled(a.id)}
+                onClick={e => e.stopPropagation()} size="sm" />
+                </div>
               </div>
-              <div className="flex gap-1">
-                <button className="text-slate hover:text-graphite cursor-pointer bg-transparent border-none p-1 text-caption rounded hover:bg-veil transition"
-                  onClick={e => { e.stopPropagation(); openEdit(a.id) }}
-                  title="Edit">✎</button>
-                <button className="text-red hover:opacity-80 cursor-pointer bg-transparent border-none p-1 text-caption rounded hover:bg-veil transition"
-                  onClick={e => { e.stopPropagation(); remove(a.id) }}>✕</button>
-              </div>
-            </div>
-            <p className="text-caption text-slate mt-1 truncate">{a.system_prompt}</p>
-            <div className="text-caption text-fog mt-1">{providers.find(p => p.id === a.provider_id)?.label || a.provider_id} · {a.tool_count} tools</div>
-            {!agentEnabled[a.id] && agentEnabled[a.id] !== undefined && (
-              <span className="text-caption text-red">Disabled</span>
-            )}
-          </div>
-        ))
+            )
+          })}
+        </div>
       )}
 
       {/* Agent form modal */}
-      <div className={`fixed inset-0 bg-black/65 z-50 flex items-center justify-center ${showForm ? '' : 'hidden'}`}>
-        <div className="bg-paper rounded-lg shadow-md px-6 py-6 w-[90%] max-w-[560px] max-h-[85vh] overflow-y-auto">
-          <h2 className="text-subheading font-semibold text-graphite mb-4">{editId ? 'Edit Agent' : 'New Agent'}</h2>
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto p-6">
+          <DialogTitle className="text-subheading font-semibold text-graphite mb-4">
+            {editId ? 'Edit Agent' : 'New Agent'}
+          </DialogTitle>
 
-          <div className="mb-3">
+          <div className="mb-4">
             <label className="block text-caption text-slate mb-1 font-medium">Name</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="My Assistant"
-              className="w-full px-2.5 py-2 rounded-lg border border-mist bg-paper text-body-sm text-graphite outline-none focus:border-sage-teal" />
+            <Input value={name} onChange={e => setName(e.target.value)} placeholder="My Assistant" className="h-auto py-2.5" />
           </div>
 
-          <div className="mb-3">
+          <div className="mb-4">
             <label className="block text-caption text-slate mb-1 font-medium">Description</label>
-            <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description"
-              className="w-full px-2.5 py-2 rounded-lg border border-mist bg-paper text-body-sm text-graphite outline-none focus:border-sage-teal" />
+            <Input value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description" className="h-auto py-2.5" />
           </div>
 
-          <div className="mb-3">
+          <div className="mb-4">
             <label className="block text-caption text-slate mb-1 font-medium">Provider</label>
             {providers.length === 0 ? (
               <div className="text-caption text-red py-2">
                 No providers configured. Create one in the Providers tab first.
               </div>
             ) : (
-              <select value={providerId} onChange={e => setProviderId(e.target.value)}
-                className="w-full px-2.5 py-2 rounded-lg border border-mist bg-paper text-body-sm text-graphite outline-none focus:border-sage-teal">
-                {providers.map(p => (
-                  <option key={p.id} value={p.id}>{p.label} ({p.kind})</option>
-                ))}
-              </select>
+              <Select value={providerId} onValueChange={(v) => v !== null && setProviderId(v)}>
+                <SelectTrigger className="w-full h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {providers.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.label} ({p.kind})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           </div>
 
-          <div className="mb-3">
+          <div className="mb-4">
             <label className="block text-caption text-slate mb-1 font-medium">System Prompt</label>
-            <textarea value={systemPrompt} onChange={e => setSystemPrompt(e.target.value)}
-              placeholder="You are a helpful assistant."
-              className="w-full px-2.5 py-2 rounded-lg border border-mist bg-paper text-body-sm text-graphite outline-none focus:border-sage-teal min-h-[80px] resize-y"
-            />
+            <Textarea value={systemPrompt} onChange={e => setSystemPrompt(e.target.value)}
+              placeholder="You are a helpful assistant." className="min-h-[80px]" />
           </div>
 
-          <div className="flex gap-2 mb-3">
+          <div className="flex gap-3 mb-4">
             <div className="flex-1">
               <label className="block text-caption text-slate mb-1 font-medium">Temperature</label>
-              <input value={temperature} onChange={e => setTemperature(e.target.value)}
-                type="number" step="0.1" placeholder="Default"
-                className="w-full px-2.5 py-2 rounded-lg border border-mist bg-paper text-body-sm text-graphite outline-none focus:border-sage-teal" />
+              <Input value={temperature} onChange={e => setTemperature(e.target.value)}
+                type="number" step="0.1" placeholder="Default" className="h-auto py-2.5" />
             </div>
             <div className="flex-1">
               <label className="block text-caption text-slate mb-1 font-medium">Max Tokens</label>
-              <input value={maxTokens} onChange={e => setMaxTokens(e.target.value)}
-                type="number" placeholder="Default"
-                className="w-full px-2.5 py-2 rounded-lg border border-mist bg-paper text-body-sm text-graphite outline-none focus:border-sage-teal" />
+              <Input value={maxTokens} onChange={e => setMaxTokens(e.target.value)}
+                type="number" placeholder="Default" className="h-auto py-2.5" />
             </div>
           </div>
 
-          <div className="mb-3">
+          <div className="mb-4">
             <label className="block text-caption text-slate mb-1 font-medium">Model Override <span className="font-normal text-fog">(optional)</span></label>
-            <input value={modelOverride} onChange={e => setModelOverride(e.target.value)}
-              placeholder="Leave empty to use provider default model"
-              className="w-full px-2.5 py-2 rounded-lg border border-mist bg-paper text-body-sm text-graphite outline-none focus:border-sage-teal" />
+            <Input value={modelOverride} onChange={e => setModelOverride(e.target.value)}
+              placeholder="Leave empty to use provider default model" className="h-auto py-2.5" />
           </div>
 
-          <div className="mb-3">
+          <div className="mb-4">
             <label className="flex items-center gap-1.5 cursor-pointer text-caption text-slate font-medium mb-1">
-              <input type="checkbox" checked={protectActiveTurn}
-                onChange={e => setProtectActiveTurn(e.target.checked)}
-                className="accent-sage-teal" />
+              <Checkbox checked={protectActiveTurn}
+                onCheckedChange={(v: boolean) => setProtectActiveTurn(v)} />
               Protect Active Turn
             </label>
             <div className="text-caption text-fog mt-0.5">
@@ -269,48 +287,42 @@ export function AgentsPanel({ agents, providers, selectedAgent, onSelect, onRefr
             </div>
           </div>
 
-          <div className="mb-3">
+          <div className="mb-4">
             <label className="block text-caption text-slate mb-1 font-medium">Tool Result Cap (bytes) <span className="font-normal text-fog">(empty = no cap)</span></label>
-            <input value={toolResultCap} onChange={e => setToolResultCap(e.target.value)}
-              type="number" min="0" step="1024"
-              placeholder="e.g. 4096 for 4 KiB cap"
-              className="w-full px-2.5 py-2 rounded-lg border border-mist bg-paper text-body-sm text-graphite outline-none focus:border-sage-teal" />
-            <div className="text-caption text-fog mt-0.5">
-              Large tool results exceeding this limit are stored in episodic memory and replaced with a recall stub.
-            </div>
+            <Input value={toolResultCap} onChange={e => setToolResultCap(e.target.value)}
+              type="number" placeholder="e.g. 4096" className="h-auto py-2.5" />
           </div>
 
-          <div className="mb-3">
+          <div className="mb-4">
             <label className="block text-caption text-slate mb-1 font-medium">Tools</label>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {AVAILABLE_TOOLS.map(t => (
-                <span key={t.name}
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-caption cursor-pointer transition border ${
-                    selectedTools.has(t.name) ? 'bg-sage-teal text-white border-sage-teal' : 'bg-paper text-slate border-mist hover:border-sage-teal'
-                  }`}
-                  onClick={() => toggleTool(t.name)}
-                  title={t.desc}
-                >{t.name}</span>
-              ))}
-            </div>
+            {AVAILABLE_TOOLS.map(t => (
+              <label key={t.name} className="flex items-center gap-1.5 mb-1 cursor-pointer">
+                <Checkbox checked={selectedTools.has(t.name)}
+                  onCheckedChange={() => toggleTool(t.name)} />
+                <span className="text-body-sm text-graphite">{t.name}</span>
+                <span className="text-caption text-slate">— {t.desc}</span>
+              </label>
+            ))}
           </div>
 
-          <div className="mb-3">
+          <div className="mb-4">
             <label className="block text-caption text-slate mb-1 font-medium">Scroll Strategy</label>
-            <select value={scrollStr} onChange={e => setScrollStr(e.target.value)}
-              className="w-full px-2.5 py-2 rounded-lg border border-mist bg-paper text-body-sm text-graphite outline-none focus:border-sage-teal">
-              {SCROLL_OPTIONS.map((o, i) => (
-                <option key={i} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+            <Select value={scrollStr} onValueChange={(v) => v !== null && setScrollStr(v)}>
+              <SelectTrigger className="w-full h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SCROLL_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex justify-end gap-2 mt-4">
-            <button className="bg-paper border border-mist text-graphite rounded-lg px-4 py-2 font-inter text-body-sm font-medium cursor-pointer transition hover:border-sage-teal" onClick={() => setShowForm(false)}>Cancel</button>
-            <button className="bg-sage-teal text-white rounded-lg px-4 py-2 font-inter text-body-sm font-medium cursor-pointer transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed border-none" onClick={save} disabled={providers.length === 0}>Save</button>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+            <Button onClick={save}>Save</Button>
           </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

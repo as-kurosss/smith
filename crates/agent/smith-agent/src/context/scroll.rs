@@ -171,7 +171,7 @@ impl SessionScroll {
             reasoning_content: None,
             tool_calls: None,
             tool_call_id: None,
-            qwenpaw_tag: None,
+            loop_tag: None,
         }
     }
 }

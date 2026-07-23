@@ -1217,7 +1217,7 @@ mod tests {
     #[test]
     fn test_path_restrict_blocks_traversal() {
         // Create a real temp dir so canonicalize() works
-        let tmp = std::env::temp_dir().join("praxis-test-pathrestrict");
+        let tmp = std::env::temp_dir().join("smith-test-pathrestrict");
         let _ = std::fs::create_dir_all(&tmp);
         let p = PathRestrict::new(vec![tmp.clone()]);
 
@@ -1238,7 +1238,7 @@ mod tests {
 
     #[test]
     fn test_path_restrict_within_subdir() {
-        let tmp = std::env::temp_dir().join("praxis-test-pathrestrict-sub");
+        let tmp = std::env::temp_dir().join("smith-test-pathrestrict-sub");
         let _ = std::fs::create_dir_all(&tmp);
         let p = PathRestrict::new(vec![tmp.clone()]);
 

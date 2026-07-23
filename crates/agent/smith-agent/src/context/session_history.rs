@@ -66,7 +66,7 @@ pub struct SessionHistory {
 impl SessionHistory {
     /// Open (or create) the session history database.
     ///
-    /// * `data_dir` — root data directory (e.g. `./praxis-data`).
+/// * `data_dir` — root data directory (e.g. `./smith-data`).
     ///   The session DB is stored at `{data_dir}/sessions/{session_id}/history.db`.
     /// * `session_id` — unique session identifier.
     ///

@@ -1,4 +1,4 @@
-//! `praxis doctor` — system diagnostics and auto-remediation.
+//! `smith doctor` — system diagnostics and auto-remediation.
 //!
 //! Runs a series of health checks and optionally fixes common issues.
 
@@ -95,7 +95,7 @@ fn print_results(results: &[CheckResult]) {
     let max_name_len = results.iter().map(|r| r.name.len()).max().unwrap_or(0);
     let separator = "-".repeat(max_name_len + 50);
 
-    println!("\n  Praxis Health Check Report\n  {separator}");
+    println!("\n  Smith Health Check Report\n  {separator}");
 
     for result in results {
         let status_str = match result.status {
@@ -200,19 +200,19 @@ fn default_registry_path() -> PathBuf {
     data_dir.join("registry.json")
 }
 
-/// Default data directory (~/.praxis/ or %APPDATA%/praxis).
+/// Default data directory (~/.smith/ or %APPDATA%/smith).
 fn default_data_dir() -> PathBuf {
     if cfg!(windows) {
         if let Some(appdata) = std::env::var_os("APPDATA") {
-            PathBuf::from(appdata).join("praxis")
+            PathBuf::from(appdata).join("smith")
         } else {
-            PathBuf::from(".").join(".praxis")
+            PathBuf::from(".").join(".smith")
         }
     } else {
         if let Some(home) = std::env::var_os("HOME") {
-            PathBuf::from(home).join(".praxis")
+            PathBuf::from(home).join(".smith")
         } else {
-            PathBuf::from(".").join(".praxis")
+            PathBuf::from(".").join(".smith")
         }
     }
 }
@@ -223,17 +223,17 @@ fn check_config() -> CheckResult {
 
     if !reg_path.exists() {
         return CheckResult::fail("Config file", format!("not found: {}", reg_path.display()))
-            .with_fix("Run `praxis doctor fix` to create a default config");
+            .with_fix("Run `smith doctor fix` to initialise episodic memory");
     }
 
     match std::fs::read_to_string(&reg_path) {
         Ok(content) => match serde_json::from_str::<serde_json::Value>(&content) {
             Ok(_) => CheckResult::pass("Config file").with_details(reg_path.display().to_string()),
             Err(e) => CheckResult::fail("Config file", format!("invalid JSON: {e}"))
-                .with_fix("Run `praxis doctor fix` to regenerate the config"),
+.with_fix("Run `smith doctor fix` to regenerate the config"),
         },
         Err(e) => CheckResult::fail("Config file", format!("cannot read: {e}"))
-            .with_fix("Run `praxis doctor fix` to recreate the config"),
+                    .with_fix("Run `smith doctor fix` to reset the session store"),
     }
 }
 
@@ -248,7 +248,7 @@ async fn check_providers() -> CheckResult {
     let providers = registry.list_providers();
     if providers.is_empty() {
         return CheckResult::warn("Providers", "no providers registered")
-            .with_fix("Add a provider: `praxis agents create --name ... --provider ...`");
+.with_fix("Add a provider: `smith agents create --name ... --provider ...`");
     }
 
     let mut passed = 0u32;
@@ -358,7 +358,7 @@ fn check_skills() -> CheckResult {
     let agents = registry.list_agents();
     if agents.is_empty() {
         return CheckResult::warn("Skills", "no agent definitions found (registry is empty)")
-            .with_fix("Create an agent: `praxis agents create --name ... --provider ...`");
+            .with_fix("Create an agent: `smith agents create --name ... --provider ...`");
     }
 
     let mut issues = Vec::new();
@@ -451,7 +451,7 @@ pub async fn execute(args: &DoctorArgs) {
         println!("  Running diagnostics with auto-fix...");
     } else {
         println!("  Running diagnostics...");
-        println!("  (use `praxis doctor fix` to auto-remediate issues)");
+        println!("  (use `smith doctor fix` to auto-remediate issues)");
     }
 
     let results = run_checks(fix_mode).await;

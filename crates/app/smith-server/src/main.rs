@@ -1,15 +1,15 @@
-//! **Praxis API Server** — HTTP API for managing agents, providers, and sessions.
+//! **Smith API Server** — HTTP API for managing agents, providers, and sessions.
 //!
 //! # Quick start
 //!
 //! ```bash
-//! cargo run --package praxis-api-server
+//! cargo run --package smith-api-server
 //! ```
 //!
 //! The server listens on `127.0.0.1:3000` by default (override with
-//! `PRAXIS_HOST` / `PRAXIS_PORT` environment variables).
+//! `SMITH_HOST` / `SMITH_PORT` environment variables).
 //!
-//! Data is persisted to `PRAXIS_DATA` or `{pwd}/praxis-data` by default.
+//! Data is persisted to `SMITH_DATA` or `{pwd}/smith-data` by default.
 
 mod routes;
 pub mod state;
@@ -24,11 +24,11 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     // Determine data directory from environment or use default
-    let data_dir: PathBuf = std::env::var("PRAXIS_DATA")
+    let data_dir: PathBuf = std::env::var("SMITH_DATA")
         .map(PathBuf::from)
         .unwrap_or_else(|_| {
             let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-            cwd.join("praxis-data")
+            cwd.join("smith-data")
         });
 
     tracing::info!("Using data directory: {}", data_dir.display());
@@ -43,8 +43,8 @@ async fn main() {
     let app = routes::router(state);
 
     // Determine bind address from environment or use default
-    let host = std::env::var("PRAXIS_HOST").unwrap_or_else(|_| "127.0.0.1".into());
-    let port: u16 = std::env::var("PRAXIS_PORT")
+    let host = std::env::var("SMITH_HOST").unwrap_or_else(|_| "127.0.0.1".into());
+    let port: u16 = std::env::var("SMITH_PORT")
         .ok()
         .and_then(|p| p.parse().ok())
         .unwrap_or(3000);
@@ -54,7 +54,7 @@ async fn main() {
         std::process::exit(1);
     });
 
-    tracing::info!("Praxis API server starting on {addr}");
+    tracing::info!("Smith API server starting on {addr}");
 
     // Start listening
     let listener = tokio::net::TcpListener::bind(addr)

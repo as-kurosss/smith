@@ -1,4 +1,4 @@
-//! # Praxis Runtime — concrete implementations for the Agent system.
+//! # Smith Runtime — concrete implementations for the Agent system.
 //!
 //! This crate provides:
 //! * [`OpenAiClient`] — an OpenAI-compatible [`LlmClient`](smith_agent::agent::LlmClient)

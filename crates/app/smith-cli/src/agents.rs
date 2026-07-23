@@ -1,6 +1,6 @@
-//! `praxis agents` — agent management subcommands.
+//! `smith agents` — agent management subcommands.
 //!
-//! Provides `praxis agents create` to scaffold new agent definitions.
+//! Provides `smith agents create` to scaffold new agent definitions.
 
 use clap::{Args, Subcommand, ValueEnum};
 use smith_agent::registry::{AgentDefinition, AgentRegistry, ProviderConfig, ProviderKind};
@@ -105,15 +105,15 @@ impl TemplateKind {
 fn default_data_dir() -> std::path::PathBuf {
     if cfg!(windows) {
         if let Some(appdata) = std::env::var_os("APPDATA") {
-            std::path::PathBuf::from(appdata).join("praxis")
+            std::path::PathBuf::from(appdata).join("smith")
         } else {
-            std::path::PathBuf::from(".").join(".praxis")
+            std::path::PathBuf::from(".").join(".smith")
         }
     } else {
         if let Some(home) = std::env::var_os("HOME") {
-            std::path::PathBuf::from(home).join(".praxis")
+            std::path::PathBuf::from(home).join(".smith")
         } else {
-            std::path::PathBuf::from(".").join(".praxis")
+            std::path::PathBuf::from(".").join(".smith")
         }
     }
 }
@@ -291,7 +291,7 @@ fn auto_create_provider(provider_str: &str) -> Option<ProviderConfig> {
     if let Some(url) = url {
         config = config.with_url(url);
     }
-    config.notes = Some("Auto-created by `praxis agents create`".to_string());
+    config.notes = Some("Auto-created by `smith agents create`".to_string());
 
     Some(config)
 }
@@ -317,7 +317,7 @@ fn initialize_workspace(workspace_path: &str, agent_id: &str, _agent_name: &str)
                 let _ = std::fs::create_dir_all(dir);
             }
 
-            // Create a .praxis-workspace metadata file
+            // Create a .smith-workspace metadata file
             let meta = serde_json::json!({
                 "version": 1,
                 "agent_id": agent_id,
@@ -325,7 +325,7 @@ fn initialize_workspace(workspace_path: &str, agent_id: &str, _agent_name: &str)
             });
 
             if let Ok(json) = serde_json::to_string_pretty(&meta) {
-                let _ = std::fs::write(path.join(".praxis-workspace"), &json);
+                let _ = std::fs::write(path.join(".smith-workspace"), &json);
             }
 
             println!("  Workspace initialized at: {workspace_path}");

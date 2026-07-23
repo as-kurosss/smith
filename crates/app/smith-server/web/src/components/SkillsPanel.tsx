@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react'
 import * as api from '../api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+
 interface SkillDefinition {
   id: string;
   name: string;
@@ -56,57 +61,63 @@ export function SkillsPanel({ addToast }: Props) {
     } catch (e: any) { addToast(e.message) }
   }
 
-  if (loading) return <div className="empty-state"><p>Loading skills...</p></div>
+  if (loading) {
+    return <div className="flex items-center justify-center h-40"><div className="text-body-sm text-slate animate-pulse-soft">Loading skills…</div></div>
+  }
 
   return (
-    <div>
-      <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
-        <button className="btn btn-primary btn-sm" onClick={() => setShowImport(true)} style={{ flex: 1 }}>
-          + Import Skill
-        </button>
+    <div className="max-w-3xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <p className="text-body-sm text-slate">Skills extend smith-agent capabilities — document processing, web search, custom workflows, and more.</p>
+        <Button onClick={() => setShowImport(true)}>+ Import Skill</Button>
       </div>
 
       {skills.length === 0 ? (
-        <div className="empty-state"><p>No skills imported yet.</p></div>
+        <div className="text-center py-16">
+          <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center text-2xl mx-auto mb-4">⚡</div>
+          <h3 className="text-subheading font-semibold text-graphite mb-2">No Skills</h3>
+          <p className="text-body-sm text-slate mb-4">Import a skill to extend agent capabilities.</p>
+          <Button variant="outline" onClick={() => setShowImport(true)}>Import Skill</Button>
+        </div>
       ) : (
-        skills.map(s => (
-          <div key={s.id} className="card">
-            <div className="flex-between">
-              <div>
-                <h3>{s.name}</h3>
-                <p>{s.description}</p>
-                {s.version && <small>v{s.version}</small>}
-                {s.source_url && <small style={{ display: 'block', color: 'var(--accent)' }}>{s.source_url}</small>}
+        <div className="space-y-4">
+          {skills.map((s, i) => (
+            <div key={s.id} className="bg-white rounded-xl border border-sage-cloud p-5 card-shadow animate-fade-in-up" style={{ animationDelay: `${i * 50}ms` }}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-body-sm font-semibold text-graphite">{s.name}</h3>
+                    {s.version && <span className="text-caption text-fog">v{s.version}</span>}
+                  </div>
+                  <p className="text-caption text-slate mb-2">{s.description}</p>
+                  {s.source_url && <div className="text-caption text-fog truncate">{s.source_url}</div>}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Switch checked={s.enabled} onCheckedChange={(v) => toggle(s.id, v)} />
+                  <Button variant="ghost" size="icon-sm" className="text-red-500 hover:text-red-600" onClick={() => remove(s.id)}>✕</Button>
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
-                  <input type="checkbox" checked={s.enabled} onChange={e => toggle(s.id, e.target.checked)} />
-                  Enabled
-                </label>
-                <button className="btn btn-danger btn-sm" onClick={() => remove(s.id)}>✕</button>
-              </div>
             </div>
-          </div>
-        ))
-      )}
-
-      {showImport && (
-        <div className="modal-overlay open" onClick={() => setShowImport(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <h2>Import Skill from URL</h2>
-            <div className="form-group">
-              <label>Skill URL (GitHub repo, OpenAPI spec, etc.)</label>
-              <input value={importUrl} onChange={e => setImportUrl(e.target.value)}
-                placeholder="https://github.com/owner/repo" autoFocus
-                onKeyDown={e => e.key === 'Enter' && doImport()} />
-            </div>
-            <div className="form-actions">
-              <button className="btn btn-outline" onClick={() => setShowImport(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={doImport} disabled={!importUrl.trim()}>Import</button>
-            </div>
-          </div>
+          ))}
         </div>
       )}
+
+      <Dialog open={showImport} onOpenChange={setShowImport}>
+        <DialogContent className="sm:max-w-[480px] p-6">
+          <DialogTitle className="text-subheading font-semibold text-graphite mb-4">Import Skill</DialogTitle>
+          <div className="mb-4">
+            <label className="block text-caption text-slate mb-1 font-medium">Skill URL</label>
+            <Input value={importUrl} onChange={e => setImportUrl(e.target.value)}
+              placeholder="https://github.com/owner/repo" className="h-auto py-2.5"
+              onKeyDown={e => e.key === 'Enter' && doImport()} />
+            <p className="text-caption text-slate mt-1">GitHub repository URL or OpenAPI spec URL.</p>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setShowImport(false)}>Cancel</Button>
+            <Button onClick={doImport} disabled={!importUrl.trim()}>Import</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

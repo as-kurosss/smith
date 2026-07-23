@@ -696,7 +696,7 @@ fn walkdir(dir: &Path, extensions: &[String], max_size: u64) -> Vec<PathBuf> {
         Ok(entries) => entries,
         Err(e) => {
             tracing::warn!(
-                "praxis: scanner: warning: cannot read directory '{}': {e}",
+                "smith: scanner: warning: cannot read directory '{}': {e}",
                 dir.display()
             );
             return files;

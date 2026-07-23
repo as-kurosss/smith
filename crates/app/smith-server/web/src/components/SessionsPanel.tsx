@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import * as api from '../api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import type { SessionSummary } from '../types'
 
 interface Props {
@@ -89,20 +91,20 @@ export function SessionsPanel({
 
   return (
     <div ref={ref} className="relative">
-      <button className="bg-paper border border-mist text-graphite rounded-lg px-3 py-1.5 font-inter text-caption font-medium cursor-pointer transition hover:border-sage-teal" onClick={() => setOpen(!open)}>
+      <Button variant="outline" size="sm" className="text-xs" onClick={() => setOpen(!open)}>
         {open ? '▲' : '▼'} Sessions {sessions.length > 0 && `(${sessions.length})`}
-      </button>
-      <button className="bg-paper border border-mist text-graphite rounded-lg px-3 py-1.5 font-inter text-caption font-medium cursor-pointer transition hover:border-sage-teal ml-1" onClick={onNewSession}>
+      </Button>
+      <Button variant="outline" size="sm" className="text-xs ml-1" onClick={onNewSession}>
         + New
-      </button>
+      </Button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-1 w-[300px] max-h-[360px] overflow-y-auto bg-paper border border-mist rounded-lg shadow-md z-50 flex flex-col">
+        <div className="absolute top-full right-0 mt-1 w-[300px] max-h-[360px] overflow-y-auto bg-white border border-sage-cloud rounded-lg shadow-md z-50 flex flex-col animate-scale-in origin-top-right">
           {/* Search filter */}
-          <div className="px-2 py-1.5 border-b border-mist">
-            <input value={filter} onChange={e => setFilter(e.target.value)}
+          <div className="px-3 py-2 border-b border-sage-cloud">
+            <Input value={filter} onChange={e => setFilter(e.target.value)}
               placeholder="Filter by title..."
-              className="w-full px-2 py-1 text-caption border border-mist rounded bg-paper text-graphite outline-none focus:border-sage-teal" />
+              className="h-auto py-1 px-2 text-xs" />
           </div>
 
           <div className="flex-1 overflow-y-auto">
@@ -116,13 +118,13 @@ export function SessionsPanel({
                 if (!items?.length) return null
                 return (
                   <div key={group}>
-                    <div className="px-3 py-1.5 text-caption font-semibold text-slate uppercase tracking-wide bg-[#f5f5f5]">{group}</div>
+                    <div className="px-3 py-2 text-caption font-semibold text-slate uppercase tracking-wide bg-sage-veil">{group}</div>
                     {items.map(s => (
                       <div key={s.id}
                         onClick={() => { onSelectSession(s.id); setOpen(false) }}
                         onContextMenu={e => handleContextMenu(e, s)}
-                        className={`px-3 py-2 cursor-pointer text-caption border-b border-mist transition ${
-                          s.id === currentSessionId ? 'bg-[#f0faf8]' : 'hover:bg-veil'
+                        className={`px-3 py-2 cursor-pointer text-caption border-b border-sage-cloud transition-all duration-150 ${
+                          s.id === currentSessionId ? 'bg-sage-veil' : 'hover:bg-sage-veil'
                         }`}
                       >
                         {renaming === s.id ? (
@@ -161,20 +163,20 @@ export function SessionsPanel({
 
       {/* Right-click context menu */}
       {contextMenu && (
-        <div className="fixed bg-paper border border-mist rounded-lg shadow-md z-[100] min-w-[140px] overflow-hidden"
+        <div className="fixed bg-white border border-sage-cloud rounded-lg shadow-md z-[100] min-w-[140px] overflow-hidden"
           style={{ left: contextMenu.x, top: contextMenu.y }}>
-          <div className="px-3 py-2 cursor-pointer text-caption border-b border-mist transition hover:bg-veil"
+          <div className="px-3 py-2 cursor-pointer text-caption border-b border-sage-cloud transition hover:bg-sage-veil"
             onClick={() => {
               setRenaming(contextMenu.session.id)
               setRenameValue(contextMenu.session.title || `Session ${contextMenu.session.id.slice(0, 8)}`)
               setContextMenu(null)
             }}>✎ Rename</div>
-          <div className="px-3 py-2 cursor-pointer text-caption border-b border-mist hover:bg-veil"
+          <div className="px-3 py-2 cursor-pointer text-caption border-b border-sage-cloud hover:bg-sage-veil"
             onClick={() => {
               addToast?.('Session pinned', 'success')
               setContextMenu(null)
             }}>📌 Pin</div>
-          <div className="px-3 py-2 cursor-pointer text-caption text-red hover:bg-veil"
+          <div className="px-3 py-2 cursor-pointer text-caption text-red hover:bg-sage-veil"
             onClick={() => deleteSession(contextMenu.session.id)}>✕ Delete</div>
         </div>
       )}

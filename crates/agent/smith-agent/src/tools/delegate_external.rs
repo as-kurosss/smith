@@ -64,7 +64,7 @@ fn default_timeout() -> u64 {
 }
 
 fn default_agent_id() -> String {
-    "praxis".into()
+    "smith".into()
 }
 
 impl Default for DelegateExternalConfig {

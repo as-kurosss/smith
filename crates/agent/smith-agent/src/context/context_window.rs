@@ -240,7 +240,7 @@ mod tests {
             reasoning_content: None,
             tool_calls: None,
             tool_call_id: None,
-            qwenpaw_tag: None,
+            loop_tag: None,
         };
         // 1 token overhead, no content
         assert_eq!(estimate_token_count(&msg), 1);
@@ -266,7 +266,7 @@ mod tests {
                 arguments: serde_json::json!({"city": "London"}),
             }]),
             tool_call_id: None,
-            qwenpaw_tag: None,
+            loop_tag: None,
         };
         // name: 10 bytes / 4 = 2
         // arguments JSON: ~21 bytes / 4 = 5

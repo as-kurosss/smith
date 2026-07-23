@@ -33,7 +33,7 @@ impl McpClient {
             "protocolVersion": "2024-11-05",
             "capabilities": {},
             "clientInfo": {
-                "name": "praxis",
+                "name": "smith",
                 "version": "0.1.0"
             }
         });

@@ -4,7 +4,7 @@
 //!
 //! # Usage
 //! ```ignore
-//! use praxis_runtime::GeminiClient;
+//! use smith_providers::GeminiClient;
 //!
 //! let client = GeminiClient::from_env("gemini-2.0-flash").unwrap();
 //! ```

@@ -84,7 +84,7 @@ impl PluginLoader {
             if !dir.exists() {
                 // Пропускаем несуществующие директории с предупреждением
                 tracing::warn!(
-                    "praxis: plugin: warning: search directory '{}' not found",
+                    "smith: plugin: warning: search directory '{}' not found",
                     dir.display()
                 );
                 continue;
@@ -116,7 +116,7 @@ impl PluginLoader {
                     }
                     Err(e) => {
                         tracing::warn!(
-                            "praxis: plugin: warning: failed to load manifest '{}': {e}",
+                        "smith: plugin: warning: failed to load manifest '{}': {e}",
                             path.display()
                         );
                     }

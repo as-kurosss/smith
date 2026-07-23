@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn test_json_roundtrip_simple() {
-        let path = test_path("praxis_test_simple.json");
+        let path = test_path("smith_test_simple.json");
         let value = 42u64;
         save_json(&path, &value).unwrap();
         let loaded: u64 = load_json(&path).unwrap();
@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn test_snapshot_file_roundtrip() {
-        let path = test_path("praxis_test_snapshot.json");
+        let path = test_path("smith_test_snapshot.json");
         let snapshot = GraphSnapshot {
             current_node: NodeId::from_id("node_1"),
             state: vec![1u32, 2, 3],
@@ -252,7 +252,7 @@ mod tests {
 
     #[test]
     fn test_file_not_found_error() {
-        let path = test_path("praxis_test_nonexistent.json");
+        let path = test_path("smith_test_nonexistent.json");
         let result: std::result::Result<GraphSnapshot<String>, crate::error::Error> =
             load_snapshot(&path);
         assert!(result.is_err());

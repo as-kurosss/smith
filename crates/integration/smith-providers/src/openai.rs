@@ -3,7 +3,7 @@
 //!
 //! # Usage
 //! ```ignore
-//! use praxis_runtime::OpenAiClient;
+//! use smith_providers::OpenAiClient;
 //!
 //! let client = OpenAiClient::from_env("gpt-4o").unwrap();
 //! // or with custom base_url:
@@ -540,7 +540,7 @@ fn extract_next_sse_event(buf: &mut String) -> Option<SseEvent> {
 
 // ── JSON mapping functions ─────────────────────────────────────────────
 
-/// Map a praxis `ChatMessage` to an `OpenAI` API message.
+/// Map a smith `ChatMessage` to an `OpenAI` API message.
 fn to_openai_message(msg: &ChatMessage) -> OpenAiMessage {
     let tool_calls = msg.tool_calls.as_ref().map(|calls| {
         calls
@@ -564,7 +564,7 @@ fn to_openai_message(msg: &ChatMessage) -> OpenAiMessage {
     }
 }
 
-/// Map an `OpenAI` API response to a praxis `ChatResponse`.
+/// Map an `OpenAI` API response to a smith `ChatResponse`.
 fn from_openai_response(resp: OpenAiResponse) -> Result<ChatResponse, OpenAiError> {
     let choice = resp
         .choices
@@ -602,7 +602,7 @@ fn from_openai_response(resp: OpenAiResponse) -> Result<ChatResponse, OpenAiErro
         reasoning_content: message.reasoning_content,
         tool_calls,
         tool_call_id: None,
-        qwenpaw_tag: None,
+        loop_tag: None,
     };
 
     let usage = resp.usage.map(|u| Usage {

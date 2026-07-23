@@ -65,14 +65,14 @@ pub struct ChatMessage {
     /// When set to `"loop_continuation"` the message is excluded from
     /// active-turn protection (see [`ScrollStrategy`](crate::agent::memory::ScrollStrategy)).
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub qwenpaw_tag: Option<String>,
+    pub loop_tag: Option<String>,
 }
 
 impl ChatMessage {
     /// Returns `true` if this is a synthetic loop-continuation message.
     #[must_use]
     pub fn is_synthetic(&self) -> bool {
-        self.qwenpaw_tag.as_deref() == Some("loop_continuation")
+        self.loop_tag.as_deref() == Some("loop_continuation")
     }
     /// Create a system message.
     pub fn system(content: impl Into<String>) -> Self {
@@ -82,7 +82,7 @@ impl ChatMessage {
             reasoning_content: None,
             tool_calls: None,
             tool_call_id: None,
-            qwenpaw_tag: None,
+            loop_tag: None,
         }
     }
 
@@ -94,7 +94,7 @@ impl ChatMessage {
             reasoning_content: None,
             tool_calls: None,
             tool_call_id: None,
-            qwenpaw_tag: None,
+            loop_tag: None,
         }
     }
 
@@ -108,7 +108,7 @@ impl ChatMessage {
             reasoning_content: None,
             tool_calls: None,
             tool_call_id: None,
-            qwenpaw_tag: Some("loop_continuation".into()),
+            loop_tag: Some("loop_continuation".into()),
         }
     }
 
@@ -120,7 +120,7 @@ impl ChatMessage {
             reasoning_content: None,
             tool_calls: None,
             tool_call_id: None,
-            qwenpaw_tag: None,
+            loop_tag: None,
         }
     }
 
@@ -133,7 +133,7 @@ impl ChatMessage {
             reasoning_content: None,
             tool_calls: Some(tool_calls),
             tool_call_id: None,
-            qwenpaw_tag: None,
+            loop_tag: None,
         }
     }
 
@@ -145,7 +145,7 @@ impl ChatMessage {
             reasoning_content: None,
             tool_calls: None,
             tool_call_id: Some(tool_call_id.to_string()),
-            qwenpaw_tag: None,
+            loop_tag: None,
         }
     }
 }

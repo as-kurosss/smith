@@ -1,12 +1,12 @@
-//! # Praxis MCP — Model Context Protocol Integration
+//! # Smith MCP — Model Context Protocol Integration
 //!
-//! Allows Praxis agents to discover and invoke tools from any MCP server
+//! Allows Smith agents to discover and invoke tools from any MCP server
 //! via JSON-RPC 2.0 over stdio.
 //!
 //! # Quick Start
 //!
 //! ```ignore
-//! use praxis_mcp::McpRegistry;
+//! use smith_mcp::McpRegistry;
 //!
 //! let mut registry = McpRegistry::new();
 //! registry.connect("fs", "npx", &["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]).await?;

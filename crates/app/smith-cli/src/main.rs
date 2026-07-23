@@ -11,7 +11,7 @@ use std::time::Duration;
 
 // ── CLI ───────────────────────────────────────────────────────────────────
 
-/// Praxis — Agent Orchestration Framework
+/// Smith — Agent Orchestration Framework
 #[derive(Parser)]
 #[command(version, about)]
 struct Cli {
@@ -31,7 +31,7 @@ enum Command {
     Agents(agents::AgentsArgs),
 }
 
-/// Arguments for `praxis run`.
+/// Arguments for `smith run`.
 #[derive(Parser)]
 struct RunArgs {
     /// Prompt to send to the agent

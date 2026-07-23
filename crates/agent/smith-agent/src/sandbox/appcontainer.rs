@@ -331,11 +331,11 @@ impl AppContainerSandbox {
             .encode_wide()
             .chain(std::iter::once(0))
             .collect();
-        let display_wide: Vec<u16> = OsStr::new(&format!("Praxis Sandbox: {name}"))
+        let display_wide: Vec<u16> = OsStr::new(&format!("Smith Sandbox: {name}"))
             .encode_wide()
             .chain(std::iter::once(0))
             .collect();
-        let desc_wide: Vec<u16> = OsStr::new("Praxis agent sandbox container")
+        let desc_wide: Vec<u16> = OsStr::new("Smith agent sandbox container")
             .encode_wide()
             .chain(std::iter::once(0))
             .collect();
@@ -393,7 +393,7 @@ impl AppContainerSandbox {
         let hr = unsafe { DeleteAppContainerProfile(name_wide.as_ptr()) };
         if hr != 0 {
             tracing::warn!(
-                "praxis: appcontainer: warning: DeleteAppContainerProfile('{name}') failed with HRESULT: 0x{hr:08x}"
+                "smith: appcontainer: warning: DeleteAppContainerProfile('{name}') failed with HRESULT: 0x{hr:08x}"
             );
         }
         hr

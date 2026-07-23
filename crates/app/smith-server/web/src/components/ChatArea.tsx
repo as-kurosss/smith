@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { chatNonStreaming, getSession } from '../api'
 import type { ChatMessage } from '../types'
 
@@ -242,64 +244,84 @@ export function ChatArea({ agentId, sessionId, messages, onMessagesChange, onSes
     }
   }
 
+  const userLabel = (i: number) => (
+    <div className="flex items-center gap-3 self-end max-w-[80%] animate-fade-in-up" style={{ animationDelay: `${Math.min(i * 30, 200)}ms` }}>
+      <div className="px-6 py-4 rounded-2xl text-body-sm leading-relaxed whitespace-pre-wrap break-words bg-sage-teal/10 text-graphite">
+        {messages[i].content}
+      </div>
+      <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-sage-teal text-white text-body-sm font-semibold">U</div>
+    </div>
+  )
+
+  const assistantLabel = (i: number) => {
+    const msg = messages[i]
+    const isLast = i === messages.length - 1
+    const isStreamingAssistant = streaming && isLast
+    const isReasoningExpanded = expandedReasoning === i
+    return (
+      <div key={i} className={`flex items-start gap-3 animate-fade-in-up${isStreamingAssistant ? ' border-l-2 border-sage-teal pl-3' : ''}`} style={{ animationDelay: `${Math.min(i * 30, 200)}ms` }}>
+        <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-white border border-sage-cloud text-caption">🤖</div>
+        <div className={`flex-1 min-w-0 px-6 py-4 rounded-2xl text-body-sm leading-relaxed whitespace-pre-wrap break-words bg-white border text-graphite ${isStreamingAssistant ? 'border-sage-teal/40' : 'border-sage-cloud'}`}>
+          {msg.reasoning_content && (
+            <div className="mb-2">
+              <div
+                className="flex items-center gap-1.5 text-caption text-slate cursor-pointer select-none py-1 px-2 rounded-lg hover:bg-sage-veil transition-colors"
+                onClick={() => setExpandedReasoning(isReasoningExpanded ? null : i)}
+              >
+                <span className="text-[10px]">{isReasoningExpanded ? '▼' : '▶'}</span>
+                <span>Thinking</span>
+                <span className="w-1 h-1 rounded-full bg-slate" />
+                <span className="text-fog">expanded{isReasoningExpanded ? '' : ' ↕'}</span>
+              </div>
+              {isReasoningExpanded && (
+                <div className="mt-1 text-caption text-slate leading-relaxed border-t border-sage-cloud pt-2">{msg.reasoning_content}</div>
+              )}
+            </div>
+          )}
+          {msg.content || ''}
+          {msg.tool_calls && msg.tool_calls.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-sage-cloud flex flex-wrap gap-1.5">
+              {msg.tool_calls.map((tc, j) => (
+                <span key={j} className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-sage-veil text-slate inline-flex items-center gap-1">
+                  <span>🔧</span> {tc.name}
+                </span>
+              ))}
+            </div>
+          )}
+          {isStreamingAssistant && !msg.content && !msg.tool_calls?.length && (
+            <span className="animate-typing">▍</span>
+          )}
+          {!isStreamingAssistant && isLast && !msg.content && !msg.tool_calls?.length && !msg.reasoning_content && (
+            <div className="text-caption text-slate text-center italic py-2">
+              The agent returned an empty response. Try rephrasing your message or check provider settings.
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
-      <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 flex flex-col gap-3" ref={chatRef}>
+      <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 flex flex-col gap-5" ref={chatRef}>
         {messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
-            <h3 className="text-body font-semibold text-graphite mb-2">Start a conversation</h3>
+            <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-3xl mb-4">💬</div>
+            <h3 className="text-body font-semibold text-graphite mb-1">Start a conversation</h3>
             <p className="text-body-sm text-slate">Type a message below to chat with this agent.</p>
           </div>
         ) : (
           messages.map((msg, i) => {
-            if (msg.role === 'user') {
-              return <div key={i} className="max-w-[80%] px-4 py-3 rounded-lg text-body-sm leading-relaxed whitespace-pre-wrap break-words self-end bg-veil text-graphite">{msg.content}</div>
-            } else if (msg.role === 'assistant') {
-              const isLast = i === messages.length - 1
-              const isStreamingAssistant = streaming && isLast
-              const isReasoningExpanded = expandedReasoning === i
+            if (msg.role === 'user') return userLabel(i)
+            if (msg.role === 'assistant') return assistantLabel(i)
+            if (msg.role === 'system') {
+              return <div key={i} className="max-w-[80%] px-4 py-3 rounded-xl text-body-sm leading-relaxed whitespace-pre-wrap break-words self-center text-slate italic bg-sage-veil animate-fade-in">{msg.content}</div>
+            }
+            if (msg.role === 'tool') {
               return (
-                <div key={i} className={`max-w-[80%] px-4 py-3 rounded-lg text-body-sm leading-relaxed whitespace-pre-wrap break-words self-start bg-paper border border-cloud text-graphite${isStreamingAssistant ? ' border-l-2 border-sage-teal' : ''}`}>
-                  {msg.reasoning_content && (
-                    <div className="reasoning-block">
-                      <div
-                        className="reasoning-header"
-                        onClick={() => setExpandedReasoning(isReasoningExpanded ? null : i)}
-                      >
-                        <span className="reasoning-toggle">{isReasoningExpanded ? '▼' : '▶'}</span>
-                        <span>Мысли модели</span>
-                      </div>
-                      {isReasoningExpanded && (
-                        <div className="reasoning-content">{msg.reasoning_content}</div>
-                      )}
-                    </div>
-                  )}
-                  {msg.content || ''}
-                  {msg.tool_calls && msg.tool_calls.length > 0 && (
-                    <div className="mt-1.5 text-caption text-slate">
-                      {msg.tool_calls.map((tc, j) => (
-                        <div key={j}>🔧 {tc.name} ({tc.id})</div>
-                      ))}
-                    </div>
-                  )}
-                  {isStreamingAssistant && !msg.content && !msg.tool_calls?.length && (
-                    <span className="animate-[blink_1s_step-end_infinite]">▍</span>
-                  )}
-                  {/* Fallback for empty assistant response after streaming completes */}
-                  {!isStreamingAssistant && i === messages.length - 1 && !msg.content && !msg.tool_calls?.length && !msg.reasoning_content && (
-                    <div className="text-caption text-slate text-center italic py-2">
-                      The agent returned an empty response. Try rephrasing your message or check provider settings.
-                    </div>
-                  )}
-                </div>
-              )
-            } else if (msg.role === 'system') {
-              return <div key={i} className="max-w-[80%] px-3.5 py-2 rounded-lg text-body-sm leading-relaxed whitespace-pre-wrap break-words self-center text-slate italic bg-[#f5f5f5]">{msg.content}</div>
-            } else if (msg.role === 'tool') {
-              return (
-                <div key={i} className="max-w-[90%] px-3.5 py-2 rounded-lg text-caption text-slate self-center border border-mist bg-[#f8f8fa]">
+                <div key={i} className="max-w-[90%] px-4 py-3 rounded-xl text-caption text-slate self-center border border-sage-cloud bg-white animate-fade-in">
                   <strong className="text-body-sm text-carbon">{msg.name || 'tool'}</strong>
-                  {msg.content && <pre className="text-caption mt-1 p-1.5 bg-[#f0f0f0] rounded overflow-x-auto">{msg.content}</pre>}
+                  {msg.content && <pre className="text-caption mt-2 p-2 bg-sage-veil rounded-lg overflow-x-auto">{msg.content}</pre>}
                 </div>
               )
             }
@@ -307,28 +329,31 @@ export function ChatArea({ agentId, sessionId, messages, onMessagesChange, onSes
           })
         )}
         {isLoading && !streaming && (
-          <div className="max-w-[80%] px-3.5 py-2.5 rounded-lg self-start bg-paper border border-cloud text-graphite text-body-sm">…</div>
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-white border border-sage-cloud text-caption">🤖</div>
+            <div className="px-5 py-4 rounded-2xl bg-white border border-sage-cloud text-graphite text-body-sm animate-pulse-soft">…</div>
+          </div>
         )}
       </div>
 
-      <div className="px-5 py-3 border-t border-mist flex gap-2 bg-paper relative">
+      <div className="px-8 py-5 border-t border-sage-cloud flex gap-4 bg-sage-paper relative">
         {messageQueue.length > 0 && (
-          <div className="queue-indicator">
+          <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-amber-100 text-amber-700 text-caption font-medium">
             {messageQueue.length} queued
           </div>
         )}
-        <input
+        <Input
           ref={inputRef}
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={streaming ? 'Streaming in progress...' : 'Type a message...'}
           disabled={false}
-          className="flex-1 px-3.5 py-2.5 rounded-lg border border-mist bg-paper text-body-sm text-graphite outline-none focus:border-sage-teal"
+          className="flex-1 h-auto py-3 px-4 rounded-xl border-sage-cloud bg-white"
         />
-        <button className="bg-sage-teal text-white rounded-lg px-5 py-2.5 font-inter text-body-sm font-medium cursor-pointer transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed border-none" onClick={() => sendMessage()} disabled={!input.trim()}>
+        <Button className="h-auto py-3 px-5 shrink-0 rounded-xl" onClick={() => sendMessage()} disabled={!input.trim()}>
           {streaming ? 'Queue' : 'Send'}
-        </button>
+        </Button>
       </div>
     </>
   )

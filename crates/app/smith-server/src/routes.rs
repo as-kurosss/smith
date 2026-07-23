@@ -1,4 +1,4 @@
-//! **Routes** — HTTP handlers for the Praxis API server.
+//! **Routes** — HTTP handlers for the Smith API server.
 //!
 //! # API Endpoints
 //!

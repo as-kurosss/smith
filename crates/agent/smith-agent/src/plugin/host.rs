@@ -209,7 +209,7 @@ mod tests {
 
     #[test]
     fn test_host_creation() {
-        let host = PluginHost::new("/tmp/praxis-plugins");
+        let host = PluginHost::new("/tmp/smith-plugins");
         let manifest = PluginManifest::from_toml(r#"name = "test-p""#).unwrap();
         let _result = host.compile(&manifest, Path::new("/fake/plugin.wasm"));
 

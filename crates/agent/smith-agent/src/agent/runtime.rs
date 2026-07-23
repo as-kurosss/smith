@@ -37,7 +37,7 @@ pub struct AgentConfig {
     pub scroll_strategy: Option<super::memory::ScrollStrategy>,
     /// When `true`, the active user turn (the most recent real user message
     /// and everything after it) is pinned and excluded from scroll eviction.
-    /// Synthetic loop-continuation messages (tagged `qwenpaw_tag = "loop_continuation"`)
+    /// Synthetic loop-continuation messages (tagged `loop_tag = "loop_continuation"`)
     /// do NOT count as real user messages.
     #[serde(default)]
     pub protect_active_turn: bool,

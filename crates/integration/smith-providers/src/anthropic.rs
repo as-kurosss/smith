@@ -3,7 +3,7 @@
 //!
 //! # Usage
 //! ```ignore
-//! use praxis_runtime::AnthropicClient;
+//! use smith_providers::AnthropicClient;
 //!
 //! let client = AnthropicClient::from_env("claude-sonnet-4-20250514").unwrap();
 //! // or with custom base_url / api_key:
@@ -291,7 +291,7 @@ impl AnthropicClient {
 
 // ── JSON mapping functions ──────────────────────────────────────────────
 
-/// Map a praxis `ChatMessage` to an Anthropic API message (system role is
+/// Map a smith `ChatMessage` to an Anthropic API message (system role is
 /// filtered out by the caller).
 fn to_anthropic_message(msg: &ChatMessage) -> AnthropicMessage {
     match msg.role {
@@ -340,7 +340,7 @@ fn to_anthropic_message(msg: &ChatMessage) -> AnthropicMessage {
     }
 }
 
-/// Map an Anthropic API response to a praxis `ChatResponse`.
+/// Map an Anthropic API response to a smith `ChatResponse`.
 fn from_anthropic_response(resp: AnthropicResponse) -> ChatResponse {
     let mut text_parts: Vec<String> = Vec::new();
     let mut calls: Vec<ToolCall> = Vec::new();
@@ -374,7 +374,7 @@ fn from_anthropic_response(resp: AnthropicResponse) -> ChatResponse {
         reasoning_content: None,
         tool_calls,
         tool_call_id: None,
-        qwenpaw_tag: None,
+    loop_tag: None,
     };
 
     let usage = resp.usage.map(|u| Usage {
