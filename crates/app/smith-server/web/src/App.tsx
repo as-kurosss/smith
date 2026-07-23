@@ -1,16 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
-import { ThemeProvider } from 'next-themes'
 import {
   MessageSquare, Inbox, Bot, Plug, LayoutList, Clock,
   Brain, Zap, Link, FolderOpen, BarChart3,
-  FileText, Shield, UserCog, PanelLeft,
+  FileText, Shield, UserCog, PanelLeft, ChevronsUpDown,
 } from 'lucide-react'
+import {
+  Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
+} from './components/ui/breadcrumb'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from './components/ui/dropdown-menu'
 import './app.css'
 import { Toaster } from './components/ui/sonner'
 import { Button } from './components/ui/button'
+import { Separator } from './components/ui/separator'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/sheet'
-import { ScrollArea } from './components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel,
@@ -24,7 +29,6 @@ import { AgentsPanel } from './components/AgentsPanel'
 import { ChatArea } from './components/ChatArea'
 import { SessionsPanel } from './components/SessionsPanel'
 import { SettingsPanel } from './components/SettingsPanel'
-import { LoginPage } from './components/LoginPage'
 import { LogsPanel } from './components/LogsPanel'
 import { MemoryPanel } from './components/MemoryPanel'
 import { ObservePage } from './components/observe/ObservePage'
@@ -139,13 +143,6 @@ function saveViewMode(mode: ViewMode) {
 }
 
 function AppContent() {
-  const [isAuthenticated] = useState(true)
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleLogin = useCallback(() => {
-    // auth temporarily disabled
-  }, [])
-
   const [activeView, setActiveView] = useState<View>('chat')
   const [agents, setAgents] = useState<AgentSummary[]>([])
   const [providers, setProviders] = useState<ProviderConfig[]>([])
@@ -185,13 +182,22 @@ function AppContent() {
     catch { /* ignore */ }
   }, [])
 
+  const loadTools = useCallback(async (agent: AgentSummary) => {
+    try {
+      const agentDef = await api.getAgent(agent.id)
+      setTools(agentDef.tools ?? [])
+    } catch { /* ignore */ }
+  }, [])
+
   const selectAgent = useCallback((agent: AgentSummary) => {
     setSelectedAgent(agent)
     setCurrentSessionId(null)
     setMessages([])
+    setTools([])
     loadSessions(agent.id)
+    loadTools(agent)
     setActiveView('chat')
-  }, [loadSessions])
+  }, [loadSessions, loadTools])
 
   const handleViewModeChange = useCallback((mode: ViewMode) => {
     setViewMode(mode)
@@ -368,23 +374,13 @@ function AppContent() {
     }
   }
 
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} />
-  }
-
   const sidebarShown = viewMode === 'normal'
-  const sidebarCollapsed = viewMode === 'wide'
   const pageTitle = VIEW_TITLES[activeView]
 
   // Simple mode: minimal layout without sidebar
   if (viewMode === 'simple') {
     return (
       <div className="flex h-screen flex-col app-simple">
-        {config?.owner_id && (
-          <div className="bg-primary text-primary-foreground text-center px-4 py-1.5 text-xs font-medium flex-shrink-0">
-            View-Only Mode — You are viewing {config.owner_id}&apos;s console
-          </div>
-        )}
         <div className="sticky top-0 z-20 h-12 border-b border-border bg-background/80 backdrop-blur-md px-4 flex items-center justify-between flex-shrink-0">
           <h1 className="text-sm font-semibold text-foreground truncate">{pageTitle}</h1>
           <div className="flex items-center gap-2">
@@ -415,24 +411,24 @@ function AppContent() {
   return (
     <TooltipProvider>
       <SidebarProvider defaultOpen={sidebarShown}>
-        {/* View-only banner */}
-        {config?.owner_id && (
-          <div className="bg-primary text-primary-foreground text-center px-4 py-1.5 text-xs font-medium flex-shrink-0 fixed top-0 left-0 right-0 z-50">
-            View-Only Mode — You are viewing {config.owner_id}&apos;s console
-          </div>
-        )}
         {sidebarShown && (
           <Sidebar variant="floating" collapsible="icon">
             <SidebarHeader>
-              <div className="flex items-center gap-3 px-2 py-1">
-                <div className="size-7 rounded-lg bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground text-xs font-semibold">
-                  S
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-sidebar-foreground leading-tight">Smith</span>
-                  <span className="text-[11px] text-sidebar-foreground/60 leading-tight">Console</span>
-                </div>
-              </div>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="w-full">
+                      <SidebarMenuButton>
+                        Smith Console
+                        <ChevronsUpDown className="ml-auto" />
+                      </SidebarMenuButton>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-popper-anchor-width]">
+                      <DropdownMenuItem>Default Workspace</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SidebarMenuItem>
+              </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
               {NAV_GROUPS.map((group) => (
@@ -471,14 +467,21 @@ function AppContent() {
           <SidebarRail />
           </Sidebar>
         )}
-        <SidebarInset className={config?.owner_id ? 'pt-7' : ''}>
+        <SidebarInset>
           {/* Topbar */}
           <div className="sticky top-0 z-20 h-14 border-b border-border bg-background/80 backdrop-blur-md px-4 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-3 min-w-0">
-              {sidebarShown && <SidebarTrigger />}
-              <h1 className="text-base font-semibold text-foreground truncate">{pageTitle}</h1>
+              <SidebarTrigger />
+              <Separator orientation="vertical" className="h-4 mr-2" />
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{pageTitle}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
               {activeView === 'chat' && selectedAgent && (
-                <span className="text-xs text-muted-foreground hidden sm:inline">
+                <span className="text-xs text-muted-foreground hidden sm:inline ml-2">
                   {providers.find(p => p.id === selectedAgent.provider_id)?.label || selectedAgent.provider_id}
                   {' · '}{selectedAgent.tool_count} tools
                 </span>
@@ -541,9 +544,5 @@ function AppContent() {
 }
 
 export default function App() {
-  return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      <AppContent />
-    </ThemeProvider>
-  )
+  return <AppContent />
 }

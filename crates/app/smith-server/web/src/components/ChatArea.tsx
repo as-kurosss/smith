@@ -177,8 +177,9 @@ export function ChatArea({ agentId, sessionId, messages, onMessagesChange, onSes
     }
 
     es.addEventListener('done', () => {
+      clearTimeout(timeoutId)
       finishStream(true)
-    })
+    }, { once: true })
 
     es.addEventListener('error', () => {
       if (done) return
@@ -201,7 +202,7 @@ export function ChatArea({ agentId, sessionId, messages, onMessagesChange, onSes
         const sid = sessionId || ''
         fallbackToNonStreaming(text, sid, updatedMessages)
       }, 1500)
-    })
+    }, { once: true })
 
     // Timeout safety — if no events within 30s, fallback
     const timeoutId = setTimeout(() => {
@@ -215,7 +216,6 @@ export function ChatArea({ agentId, sessionId, messages, onMessagesChange, onSes
       }
     }, 30000)
 
-    es.addEventListener('done', () => clearTimeout(timeoutId), { once: true })
   }, [messages, agentId, sessionId, onMessagesChange, onSessionChange, addToast])
 
   const fallbackToNonStreaming = async (text: string, sid: string, currentMessages: ChatMessage[]) => {
@@ -245,11 +245,11 @@ export function ChatArea({ agentId, sessionId, messages, onMessagesChange, onSes
   }
 
   const userLabel = (i: number) => (
-    <div className="flex items-center gap-3 self-end max-w-[80%] animate-fade-in-up" style={{ animationDelay: `${Math.min(i * 30, 200)}ms` }}>
-      <div className="px-6 py-4 rounded-2xl text-body-sm leading-relaxed whitespace-pre-wrap break-words bg-sage-teal/10 text-graphite">
+    <div className="flex items-center gap-3 self-end max-w-[80%] animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: `${Math.min(i * 30, 200)}ms` }}>
+      <div className="px-6 py-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words bg-primary/10 text-foreground">
         {messages[i].content}
       </div>
-      <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-sage-teal text-white text-body-sm font-semibold">U</div>
+      <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-primary text-primary-foreground text-sm font-semibold">U</div>
     </div>
   )
 
@@ -259,40 +259,40 @@ export function ChatArea({ agentId, sessionId, messages, onMessagesChange, onSes
     const isStreamingAssistant = streaming && isLast
     const isReasoningExpanded = expandedReasoning === i
     return (
-      <div key={i} className={`flex items-start gap-3 animate-fade-in-up${isStreamingAssistant ? ' border-l-2 border-sage-teal pl-3' : ''}`} style={{ animationDelay: `${Math.min(i * 30, 200)}ms` }}>
-        <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-white border border-sage-cloud text-caption">🤖</div>
-        <div className={`flex-1 min-w-0 px-6 py-4 rounded-2xl text-body-sm leading-relaxed whitespace-pre-wrap break-words bg-white border text-graphite ${isStreamingAssistant ? 'border-sage-teal/40' : 'border-sage-cloud'}`}>
+      <div key={i} className={`flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2${isStreamingAssistant ? ' border-l-2 border-primary pl-3' : ''}`} style={{ animationDelay: `${Math.min(i * 30, 200)}ms` }}>
+        <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-background border border-border text-xs">🤖</div>
+        <div className={`flex-1 min-w-0 px-6 py-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words bg-background border text-foreground ${isStreamingAssistant ? 'border-primary/40' : 'border-border'}`}>
           {msg.reasoning_content && (
             <div className="mb-2">
               <div
-                className="flex items-center gap-1.5 text-caption text-slate cursor-pointer select-none py-1 px-2 rounded-lg hover:bg-sage-veil transition-colors"
+                className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none py-1 px-2 rounded-lg hover:bg-muted transition-colors"
                 onClick={() => setExpandedReasoning(isReasoningExpanded ? null : i)}
               >
                 <span className="text-[10px]">{isReasoningExpanded ? '▼' : '▶'}</span>
                 <span>Thinking</span>
-                <span className="w-1 h-1 rounded-full bg-slate" />
-                <span className="text-fog">expanded{isReasoningExpanded ? '' : ' ↕'}</span>
+                <span className="w-1 h-1 rounded-full bg-muted-foreground" />
+                <span className="text-muted-foreground">expanded{isReasoningExpanded ? '' : ' ↕'}</span>
               </div>
               {isReasoningExpanded && (
-                <div className="mt-1 text-caption text-slate leading-relaxed border-t border-sage-cloud pt-2">{msg.reasoning_content}</div>
+                <div className="mt-1 text-xs text-muted-foreground leading-relaxed border-t border-border pt-2">{msg.reasoning_content}</div>
               )}
             </div>
           )}
           {msg.content || ''}
           {msg.tool_calls && msg.tool_calls.length > 0 && (
-            <div className="mt-2 pt-2 border-t border-sage-cloud flex flex-wrap gap-1.5">
+            <div className="mt-2 pt-2 border-t border-border flex flex-wrap gap-1.5">
               {msg.tool_calls.map((tc, j) => (
-                <span key={j} className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-sage-veil text-slate inline-flex items-center gap-1">
+                <span key={j} className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-muted text-muted-foreground inline-flex items-center gap-1">
                   <span>🔧</span> {tc.name}
                 </span>
               ))}
             </div>
           )}
           {isStreamingAssistant && !msg.content && !msg.tool_calls?.length && (
-            <span className="animate-typing">▍</span>
+            <span className="animate-pulse">▍</span>
           )}
           {!isStreamingAssistant && isLast && !msg.content && !msg.tool_calls?.length && !msg.reasoning_content && (
-            <div className="text-caption text-slate text-center italic py-2">
+            <div className="text-xs text-muted-foreground text-center italic py-2">
               The agent returned an empty response. Try rephrasing your message or check provider settings.
             </div>
           )}
@@ -307,21 +307,21 @@ export function ChatArea({ agentId, sessionId, messages, onMessagesChange, onSes
         {messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-3xl mb-4">💬</div>
-            <h3 className="text-body font-semibold text-graphite mb-1">Start a conversation</h3>
-            <p className="text-body-sm text-slate">Type a message below to chat with this agent.</p>
+            <h3 className="text-base font-semibold text-foreground mb-1">Start a conversation</h3>
+            <p className="text-sm text-muted-foreground">Type a message below to chat with this agent.</p>
           </div>
         ) : (
           messages.map((msg, i) => {
             if (msg.role === 'user') return userLabel(i)
             if (msg.role === 'assistant') return assistantLabel(i)
             if (msg.role === 'system') {
-              return <div key={i} className="max-w-[80%] px-4 py-3 rounded-xl text-body-sm leading-relaxed whitespace-pre-wrap break-words self-center text-slate italic bg-sage-veil animate-fade-in">{msg.content}</div>
+              return <div key={i} className="max-w-[80%] px-4 py-3 rounded-xl text-sm leading-relaxed whitespace-pre-wrap break-words self-center text-muted-foreground italic bg-muted animate-in fade-in">{msg.content}</div>
             }
             if (msg.role === 'tool') {
               return (
-                <div key={i} className="max-w-[90%] px-4 py-3 rounded-xl text-caption text-slate self-center border border-sage-cloud bg-white animate-fade-in">
-                  <strong className="text-body-sm text-carbon">{msg.name || 'tool'}</strong>
-                  {msg.content && <pre className="text-caption mt-2 p-2 bg-sage-veil rounded-lg overflow-x-auto">{msg.content}</pre>}
+                <div key={i} className="max-w-[90%] px-4 py-3 rounded-xl text-xs text-muted-foreground self-center border border-border bg-background animate-in fade-in">
+                  <strong className="text-sm text-foreground">{msg.name || 'tool'}</strong>
+                  {msg.content && <pre className="text-xs mt-2 p-2 bg-muted rounded-lg overflow-x-auto">{msg.content}</pre>}
                 </div>
               )
             }
@@ -330,15 +330,15 @@ export function ChatArea({ agentId, sessionId, messages, onMessagesChange, onSes
         )}
         {isLoading && !streaming && (
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-white border border-sage-cloud text-caption">🤖</div>
-            <div className="px-5 py-4 rounded-2xl bg-white border border-sage-cloud text-graphite text-body-sm animate-pulse-soft">…</div>
+            <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-background border border-border text-xs">🤖</div>
+            <div className="px-5 py-4 rounded-2xl bg-background border border-border text-foreground text-sm animate-pulse">…</div>
           </div>
         )}
       </div>
 
-      <div className="px-8 py-5 border-t border-sage-cloud flex gap-4 bg-sage-paper relative">
+      <div className="px-8 py-5 border-t border-border flex gap-4 bg-card relative">
         {messageQueue.length > 0 && (
-          <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-amber-100 text-amber-700 text-caption font-medium">
+          <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
             {messageQueue.length} queued
           </div>
         )}
@@ -349,7 +349,7 @@ export function ChatArea({ agentId, sessionId, messages, onMessagesChange, onSes
           onKeyDown={handleKeyDown}
           placeholder={streaming ? 'Streaming in progress...' : 'Type a message...'}
           disabled={false}
-          className="flex-1 h-auto py-3 px-4 rounded-xl border-sage-cloud bg-white"
+          className="flex-1 h-auto py-3 px-4 rounded-xl border-border bg-background"
         />
         <Button className="h-auto py-3 px-5 shrink-0 rounded-xl" onClick={() => sendMessage()} disabled={!input.trim()}>
           {streaming ? 'Queue' : 'Send'}

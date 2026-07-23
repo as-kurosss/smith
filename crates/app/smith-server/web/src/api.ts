@@ -15,6 +15,16 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
     headers: { 'Content-Type': 'application/json', ...opts.headers as Record<string, string> },
     ...opts,
   });
+
+  if (!res.ok) {
+    let message = `HTTP ${res.status}`;
+    try {
+      const json = await res.json();
+      if (json.error) message = json.error;
+    } catch { /* not JSON — keep HTTP status */ }
+    throw new ApiError(message);
+  }
+
   const json: ApiResponse<T> = await res.json();
   if (!json.success) throw new ApiError(json.error || 'API error');
   return json.data as T;
@@ -101,12 +111,6 @@ export async function getNotifications(): Promise<Notification[]> {
 
 export async function listSkills(): Promise<unknown[]> {
   return request('/api/skills');
-}
-
-// ── Memory ──
-
-export async function searchMemory(q: string): Promise<unknown[]> {
-  return request(`/api/memory/search?q=${encodeURIComponent(q)}`);
 }
 
 // ── Security ──

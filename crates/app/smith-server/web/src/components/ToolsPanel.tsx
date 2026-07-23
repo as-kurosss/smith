@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import type { ToolBinding } from '../types'
-import { BUILTIN_TOOLS } from '../types'
+import { BUILTIN_TOOLS } from '../constants'
 
 interface Props {
   tools: ToolBinding[]

@@ -23,8 +23,8 @@ export default defineConfig({
           proxy.on('error', (err, _req, res) => {
             if ((err as any)?.code === 'ECONNREFUSED') {
               try {
-                (res as any)?.writeHead?.(200, { 'Content-Type': 'application/json' })
-                ;(res as any)?.end?.(JSON.stringify({ success: false, error: 'Backend unavailable' }))
+                (res as any)?.writeHead?.(502, { 'Content-Type': 'application/json' })
+                ;(res as any)?.end?.(JSON.stringify({ success: false, error: 'Backend unavailable (smith-server not running)' }))
               } catch { /* ignore */ }
             }
           })
