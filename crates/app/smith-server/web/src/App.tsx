@@ -1,264 +1,80 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { toast } from 'sonner'
-import {
-  MessageSquare, Inbox, Bot, Plug, LayoutList, Clock,
-  Brain, Zap, Link, FolderOpen, BarChart3,
-  FileText, Shield, UserCog, PanelLeft, ChevronsUpDown,
-} from 'lucide-react'
-import {
-  Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
-} from './components/ui/breadcrumb'
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from './components/ui/dropdown-menu'
-import './app.css'
+import { useState, useEffect, useCallback } from 'react'
+import { ChevronsUpDown, PanelLeft, UserCog, MessageSquare } from 'lucide-react'
 import { Toaster } from './components/ui/sonner'
 import { Button } from './components/ui/button'
 import { Separator } from './components/ui/separator'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/sheet'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
-import {
-  SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel,
-  SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton,
-  SidebarHeader, SidebarFooter, SidebarSeparator, SidebarTrigger,
-  SidebarInset, SidebarRail,
-} from './components/ui/sidebar'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from './components/ui/breadcrumb'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './components/ui/dropdown-menu'
+import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarFooter, SidebarSeparator, SidebarTrigger, SidebarInset, SidebarRail } from './components/ui/sidebar'
 import { TooltipProvider } from './components/ui/tooltip'
-import { ProvidersPanel } from './components/ProvidersPanel'
-import { AgentsPanel } from './components/AgentsPanel'
+import { ICONS, NAV_GROUPS, VIEW_TITLES } from './navigation'
+import type { View } from './navigation'
+import { useAgents } from './hooks/useAgents'
+import { useChat } from './hooks/useChat'
+import { useSessions } from './hooks/useSessions'
+import { useConfig } from './hooks/useConfig'
+import { AgentsView } from './views/AgentsView'
+import { ProvidersView } from './views/ProvidersView'
+import { ToolsSkillsView } from './views/ToolsSkillsView'
+import { McpView } from './views/McpView'
+import { MemoryView } from './views/MemoryView'
+import { SecurityView } from './views/SecurityView'
+import { ObserveView } from './views/ObserveView'
+import { LogsView } from './views/LogsView'
 import { ChatArea } from './components/ChatArea'
-import { SessionsPanel } from './components/SessionsPanel'
-import { SettingsPanel } from './components/SettingsPanel'
-import { LogsPanel } from './components/LogsPanel'
-import { MemoryPanel } from './components/MemoryPanel'
-import { ObservePage } from './components/observe/ObservePage'
-import { SecurityPanel } from './components/SecurityPanel'
-import { SkillsPanel } from './components/SkillsPanel'
-import { ToolsPanel } from './components/ToolsPanel'
 import { InboxPage } from './components/InboxPage'
 import { SessionsOverviewPage } from './components/SessionsOverviewPage'
 import { CronJobsPage } from './components/CronJobsPage'
 import { FilesPage } from './components/FilesPage'
-import { McpPage } from './components/McpPage'
-import * as api from './api'
-import type { AgentSummary, ProviderConfig, SessionSummary, ChatMessage, Config, ToolBinding } from './types'
+import { SettingsPanel } from './components/SettingsPanel'
+import { SessionsPanel } from './components/SessionsPanel'
+import type { AgentSummary } from './types'
 
-type View = 'chat' | 'inbox' | 'agents' | 'providers' | 'sessions_overview' | 'cronjobs' | 'memory' | 'tools-skills' | 'mcp' | 'files' | 'observe' | 'logs' | 'security' | 'settings'
-
-type ViewMode = 'normal' | 'wide' | 'simple'
-
-interface NavItem {
-  id: View
-  label: string
-  icon: React.ReactNode
-}
-
-interface NavGroup {
-  title: string
-  items: NavItem[]
-}
-
-const ICONS: Record<string, React.ReactNode> = {
-  chat: <MessageSquare className="size-4" />,
-  inbox: <Inbox className="size-4" />,
-  agents: <Bot className="size-4" />,
-  providers: <Plug className="size-4" />,
-  sessions_overview: <LayoutList className="size-4" />,
-  cronjobs: <Clock className="size-4" />,
-  memory: <Brain className="size-4" />,
-  'tools-skills': <Zap className="size-4" />,
-  mcp: <Link className="size-4" />,
-  files: <FolderOpen className="size-4" />,
-  observe: <BarChart3 className="size-4" />,
-  logs: <FileText className="size-4" />,
-  security: <Shield className="size-4" />,
-  settings: <UserCog className="size-4" />,
-}
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    title: 'Chat',
-    items: [{ id: 'chat', label: 'Chat', icon: ICONS.chat }],
-  },
-  {
-    title: 'Inbox',
-    items: [{ id: 'inbox', label: 'Inbox', icon: ICONS.inbox }],
-  },
-  {
-    title: 'Control',
-    items: [
-      { id: 'agents', label: 'Agents', icon: ICONS.agents },
-      { id: 'providers', label: 'Providers', icon: ICONS.providers },
-      { id: 'sessions_overview', label: 'Sessions', icon: ICONS.sessions_overview },
-      { id: 'cronjobs', label: 'Cron Jobs', icon: ICONS.cronjobs },
-    ],
-  },
-  {
-    title: 'Workspace',
-    items: [
-      { id: 'memory', label: 'Memory', icon: ICONS.memory },
-      { id: 'tools-skills', label: 'Tools & Skills', icon: ICONS['tools-skills'] },
-      { id: 'mcp', label: 'MCP', icon: ICONS.mcp },
-      { id: 'files', label: 'Files', icon: ICONS.files },
-    ],
-  },
-  {
-    title: 'Observe',
-    items: [
-      { id: 'observe', label: 'Observe', icon: ICONS.observe },
-      { id: 'logs', label: 'Logs', icon: ICONS.logs },
-      { id: 'security', label: 'Security', icon: ICONS.security },
-    ],
-  },
-]
-
-const VIEW_TITLES: Record<View, string> = {
-  chat: 'Chat',
-  inbox: 'Inbox',
-  agents: 'Agents',
-  providers: 'Providers',
-  sessions_overview: 'Sessions',
-  cronjobs: 'Cron Jobs',
-  memory: 'Memory',
-  'tools-skills': 'Tools & Skills',
-  mcp: 'MCP',
-  files: 'Files',
-  observe: 'Observe',
-  logs: 'Logs',
-  security: 'Security',
-  settings: 'Settings',
-}
-
-function loadViewMode(): ViewMode {
-  try {
-    const saved = localStorage.getItem('smith_view_mode')
-    if (saved === 'wide' || saved === 'simple') return saved
-  } catch { /* ignore */ }
-  return 'normal'
-}
-
-function saveViewMode(mode: ViewMode) {
-  try { localStorage.setItem('smith_view_mode', mode) }
-  catch { /* ignore */ }
-}
+import './app.css'
 
 function AppContent() {
   const [activeView, setActiveView] = useState<View>('chat')
-  const [agents, setAgents] = useState<AgentSummary[]>([])
-  const [providers, setProviders] = useState<ProviderConfig[]>([])
-  const [selectedAgent, setSelectedAgent] = useState<AgentSummary | null>(null)
-  const [sessions, setSessions] = useState<SessionSummary[]>([])
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [tools, setTools] = useState<ToolBinding[]>([])
-  const [config, setConfig] = useState<Config | null>(null)
-  const [showSettings, setShowSettings] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>(loadViewMode)
-  const notifIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const agents = useAgents()
+  const chat = useChat()
+  const sessions = useSessions()
+  const config = useConfig()
+  const { addToast } = config
 
-  const addToast = useCallback((msg: string, type: 'error' | 'success' | 'info' = 'error') => {
-    if (type === 'success') toast.success(msg)
-    else if (type === 'error') toast.error(msg)
-    else toast.info(msg)
-  }, [])
-
-  const loadAgents = useCallback(async () => {
-    try { setAgents(await api.listAgents()) }
-    catch (e: any) { addToast(e.message) }
-  }, [addToast])
-
-  const loadProviders = useCallback(async () => {
-    try { setProviders(await api.listProviders()) }
-    catch (e: any) { addToast(e.message) }
-  }, [addToast])
-
-  const loadConfig = useCallback(async () => {
-    try { setConfig(await api.getConfig()) }
-    catch { /* config not critical */ }
-  }, [])
-
-  const loadSessions = useCallback(async (agentId: string) => {
-    try { setSessions(await api.listSessions(agentId)) }
-    catch { /* ignore */ }
-  }, [])
-
-  const loadTools = useCallback(async (agent: AgentSummary) => {
-    try {
-      const agentDef = await api.getAgent(agent.id)
-      setTools(agentDef.tools ?? [])
-    } catch { /* ignore */ }
-  }, [])
+  useEffect(() => { agents.loadAgents(); agents.loadProviders(); config.loadConfig() }, [])
 
   const selectAgent = useCallback((agent: AgentSummary) => {
-    setSelectedAgent(agent)
-    setCurrentSessionId(null)
-    setMessages([])
-    setTools([])
-    loadSessions(agent.id)
-    loadTools(agent)
+    agents.setSelectedAgent(agent)
+    sessions.setCurrentSessionId(null)
+    chat.setMessages([])
+    agents.setTools([])
+    sessions.loadSessions(agent.id)
+    agents.loadTools(agent)
     setActiveView('chat')
-  }, [loadSessions, loadTools])
+  }, [agents, sessions, chat])
 
-  const handleViewModeChange = useCallback((mode: ViewMode) => {
-    setViewMode(mode)
-    saveViewMode(mode)
-  }, [])
-
-  useEffect(() => { loadProviders(); loadAgents(); loadConfig() }, [loadProviders, loadAgents, loadConfig])
-
-  // Poll notifications for background task completion
-  useEffect(() => {
-    if (notifIntervalRef.current) clearInterval(notifIntervalRef.current)
-    notifIntervalRef.current = setInterval(async () => {
-      try {
-        const notes = await api.getNotifications()
-        for (const n of notes) {
-          if (n.kind === 'task_completed') {
-            addToast(`Task completed: ${n.message}`, 'success')
-          } else if (n.kind === 'task_failed') {
-            addToast(`Task failed: ${n.message}`, 'error')
-          } else if (n.kind === 'approval_created') {
-            addToast(`🔴 ${n.message}`, 'info')
-          } else {
-            addToast(n.message, 'info')
-          }
-        }
-      } catch { /* ignore polling errors */ }
-    }, 5000)
-    return () => {
-      if (notifIntervalRef.current) clearInterval(notifIntervalRef.current)
-    }
-  }, [addToast])
-
-  const refreshAll = useCallback(() => {
-    loadProviders(); loadAgents(); loadConfig()
-    if (selectedAgent) loadSessions(selectedAgent.id)
-  }, [loadProviders, loadAgents, loadConfig, loadSessions, selectedAgent])
-
-  // Navigation
   const navigate = useCallback((view: View) => {
-    if (view === 'settings') {
-      setShowSettings(true)
-    } else {
-      setActiveView(view)
-    }
-  }, [])
+    if (view === 'settings') config.setShowSettings(true)
+    else setActiveView(view)
+  }, [config])
 
-  // Render content for the active view
+  const pageTitle = VIEW_TITLES[activeView]
+  const sidebarShown = config.viewMode === 'normal'
+
   const renderContent = () => {
     switch (activeView) {
       case 'chat':
-        if (selectedAgent) {
+        if (agents.selectedAgent) {
           return (
             <ChatArea
-              key={selectedAgent.id}
-              agentId={selectedAgent.id}
-              sessionId={currentSessionId}
-              messages={messages}
-              onMessagesChange={setMessages}
+              key={agents.selectedAgent.id}
+              agentId={agents.selectedAgent.id}
+              sessionId={sessions.currentSessionId}
+              messages={chat.messages}
+              onMessagesChange={chat.setMessages}
               onSessionChange={(sid) => {
-                setCurrentSessionId(sid)
-                if (selectedAgent) loadSessions(selectedAgent.id)
+                sessions.setCurrentSessionId(sid)
+                if (agents.selectedAgent) sessions.loadSessions(agents.selectedAgent.id)
               }}
               addToast={addToast}
             />
@@ -273,135 +89,43 @@ function AppContent() {
             <p className="text-sm text-muted-foreground max-w-xs">Select an agent from the sidebar to start chatting.</p>
           </div>
         )
-      case 'inbox':
-        return (
-          <div className="p-6">
-            <InboxPage addToast={addToast} />
-          </div>
-        )
-      case 'agents':
-        return (
-          <div className="p-6">
-            <AgentsPanel
-              agents={agents}
-              providers={providers}
-              selectedAgent={selectedAgent}
-              onSelect={selectAgent}
-              onRefresh={loadAgents}
-              addToast={addToast}
-            />
-          </div>
-        )
-      case 'providers':
-        return (
-          <div className="p-6">
-            <ProvidersPanel
-              providers={providers}
-              onRefresh={loadProviders}
-              addToast={addToast}
-            />
-          </div>
-        )
-      case 'sessions_overview':
-        return (
-          <div className="p-6">
-            <SessionsOverviewPage addToast={addToast} />
-          </div>
-        )
-      case 'cronjobs':
-        return (
-          <div className="p-6">
-            <CronJobsPage addToast={addToast} />
-          </div>
-        )
-      case 'memory':
-        return (
-          <div className="p-6">
-            <MemoryPanel addToast={addToast} />
-          </div>
-        )
-      case 'tools-skills':
-        return (
-          <div className="p-6">
-            <Tabs defaultValue="tools">
-              <TabsList>
-                <TabsTrigger value="tools">Tools</TabsTrigger>
-                <TabsTrigger value="skills">Skills</TabsTrigger>
-              </TabsList>
-              <TabsContent value="tools" className="mt-4">
-                <ToolsPanel tools={tools} onToolsChange={setTools} />
-              </TabsContent>
-              <TabsContent value="skills" className="mt-4">
-                <SkillsPanel addToast={addToast} />
-              </TabsContent>
-            </Tabs>
-          </div>
-        )
-      case 'mcp':
-        return (
-          <div className="p-6">
-            <McpPage addToast={addToast} />
-          </div>
-        )
-      case 'files':
-        return (
-          <div className="p-6">
-            <FilesPage addToast={addToast} />
-          </div>
-        )
-      case 'observe':
-        return (
-          <div className="p-6">
-            <ObservePage addToast={addToast} />
-          </div>
-        )
-      case 'logs':
-        return (
-          <div className="p-6">
-            <LogsPanel addToast={addToast} />
-          </div>
-        )
-      case 'security':
-        return (
-          <div className="p-6">
-            <SecurityPanel addToast={addToast} />
-          </div>
-        )
-      case 'settings':
-        return null // handled by Sheet overlay
-      default:
-        return null
+      case 'inbox': return <div className="p-6"><InboxPage addToast={addToast} /></div>
+      case 'agents': return <AgentsView agents={agents.agents} providers={agents.providers} selectedAgent={agents.selectedAgent} onSelect={selectAgent} onRefresh={agents.loadAgents} addToast={addToast} />
+      case 'providers': return <ProvidersView providers={agents.providers} onRefresh={agents.loadProviders} addToast={addToast} />
+      case 'sessions_overview': return <div className="p-6"><SessionsOverviewPage addToast={addToast} /></div>
+      case 'cronjobs': return <div className="p-6"><CronJobsPage addToast={addToast} /></div>
+      case 'memory': return <MemoryView addToast={addToast} />
+      case 'tools-skills': return <ToolsSkillsView tools={agents.tools} onToolsChange={agents.setTools} addToast={addToast} />
+      case 'mcp': return <McpView addToast={addToast} />
+      case 'files': return <div className="p-6"><FilesPage addToast={addToast} /></div>
+      case 'observe': return <ObserveView addToast={addToast} />
+      case 'logs': return <LogsView addToast={addToast} />
+      case 'security': return <SecurityView addToast={addToast} />
+      case 'settings': return null
+      default: return null
     }
   }
 
-  const sidebarShown = viewMode === 'normal'
-  const pageTitle = VIEW_TITLES[activeView]
-
-  // Simple mode: minimal layout without sidebar
-  if (viewMode === 'simple') {
+  if (config.viewMode === 'simple') {
     return (
       <div className="flex h-screen flex-col app-simple">
         <div className="sticky top-0 z-20 h-12 border-b border-border bg-background/80 backdrop-blur-md px-4 flex items-center justify-between flex-shrink-0">
           <h1 className="text-sm font-semibold text-foreground truncate">{pageTitle}</h1>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => handleViewModeChange('normal')}>
+            <Button variant="ghost" size="sm" onClick={() => config.setViewMode('normal')}>
               <PanelLeft className="size-4 mr-1" /> Sidebar
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)} title="Settings">
+            <Button variant="ghost" size="icon" onClick={() => config.setShowSettings(true)} title="Settings">
               <UserCog className="size-4" />
             </Button>
           </div>
         </div>
-        <div className="flex-1 overflow-auto">
-          {renderContent()}
-        </div>
+        <div className="flex-1 overflow-auto">{renderContent()}</div>
         <Toaster position="bottom-right" richColors />
-        <Sheet open={showSettings} onOpenChange={setShowSettings}>
+        <Sheet open={config.showSettings} onOpenChange={config.setShowSettings}>
           <SheetContent side="right" className="w-full sm:max-w-lg">
-            <SheetHeader>
-              <SheetTitle>Settings</SheetTitle>
-            </SheetHeader>
-            <SettingsPanel config={config} viewMode={viewMode} onViewModeChange={handleViewModeChange} onClose={() => setShowSettings(false)} addToast={addToast} />
+            <SheetHeader><SheetTitle>Settings</SheetTitle></SheetHeader>
+            <SettingsPanel config={config.config} viewMode={config.viewMode} onViewModeChange={config.setViewMode} onClose={() => config.setShowSettings(false)} addToast={addToast} />
           </SheetContent>
         </Sheet>
       </div>
@@ -423,7 +147,7 @@ function AppContent() {
                         <ChevronsUpDown className="ml-auto" />
                       </SidebarMenuButton>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-popper-anchor-width]">
+                    <DropdownMenuContent className="w-(--anchor-width)">
                       <DropdownMenuItem>Default Workspace</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -438,11 +162,7 @@ function AppContent() {
                     <SidebarMenu>
                       {group.items.map((item) => (
                         <SidebarMenuItem key={item.id}>
-                          <SidebarMenuButton
-                            isActive={activeView === item.id}
-                            onClick={() => navigate(item.id)}
-                            tooltip={item.label}
-                          >
+                          <SidebarMenuButton isActive={activeView === item.id} onClick={() => navigate(item.id)} tooltip={item.label}>
                             {item.icon}
                             <span>{item.label}</span>
                           </SidebarMenuButton>
@@ -457,18 +177,17 @@ function AppContent() {
             <SidebarFooter>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton onClick={() => setShowSettings(true)} tooltip="Settings">
+                  <SidebarMenuButton onClick={() => config.setShowSettings(true)} tooltip="Settings">
                     <UserCog className="size-4" />
                     <span>Settings</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarFooter>
-          <SidebarRail />
+            <SidebarRail />
           </Sidebar>
         )}
         <SidebarInset>
-          {/* Topbar */}
           <div className="sticky top-0 z-20 h-14 border-b border-border bg-background/80 backdrop-blur-md px-4 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-3 min-w-0">
               <SidebarTrigger />
@@ -476,65 +195,40 @@ function AppContent() {
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem>
+                    <BreadcrumbLink href="#" onClick={() => setActiveView('agents')}>Smith</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
                     <BreadcrumbPage>{pageTitle}</BreadcrumbPage>
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </Breadcrumb>
-              {activeView === 'chat' && selectedAgent && (
+              {activeView === 'chat' && agents.selectedAgent && (
                 <span className="text-xs text-muted-foreground hidden sm:inline ml-2">
-                  {providers.find(p => p.id === selectedAgent.provider_id)?.label || selectedAgent.provider_id}
-                  {' · '}{selectedAgent.tool_count} tools
+                  {agents.providers.find(p => p.id === agents.selectedAgent!.provider_id)?.label || agents.selectedAgent!.provider_id}
+                  {' '}{agents.selectedAgent!.tool_count} tools
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {activeView === 'chat' && selectedAgent && (
+              {activeView === 'chat' && agents.selectedAgent && (
                 <SessionsPanel
-                  sessions={sessions}
-                  currentSessionId={currentSessionId}
-                  onSelectSession={(id) => {
-                    setCurrentSessionId(id)
-                    setMessages([])
-                  }}
-                  onNewSession={() => {
-                    setCurrentSessionId(null)
-                    setMessages([])
-                  }}
-                  agentId={selectedAgent.id}
-                  onSessionsChange={() => loadSessions(selectedAgent.id)}
+                  sessions={sessions.sessions}
+                  currentSessionId={sessions.currentSessionId}
+                  onSelectSession={(id) => { sessions.setCurrentSessionId(id); chat.setMessages([]) }}
+                  onNewSession={() => { sessions.setCurrentSessionId(null); chat.setMessages([]) }}
+                  agentId={agents.selectedAgent.id}
+                  onSessionsChange={() => sessions.loadSessions(agents.selectedAgent!.id)}
                 />
               )}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowSettings(true)}
-                title="Settings"
-              >
-                <UserCog className="size-4" />
-              </Button>
             </div>
           </div>
-
-          {/* Content */}
-          <div className="flex-1 overflow-auto">
-            {renderContent()}
-          </div>
-
+          <div className="flex-1 overflow-auto">{renderContent()}</div>
           <Toaster position="bottom-right" richColors />
-
-          {/* Settings Sheet */}
-          <Sheet open={showSettings} onOpenChange={setShowSettings}>
+          <Sheet open={config.showSettings} onOpenChange={config.setShowSettings}>
             <SheetContent side="right" className="w-full sm:max-w-lg">
-              <SheetHeader>
-                <SheetTitle>Settings</SheetTitle>
-              </SheetHeader>
-              <SettingsPanel
-                config={config}
-                viewMode={viewMode}
-                onViewModeChange={handleViewModeChange}
-                onClose={() => setShowSettings(false)}
-                addToast={addToast}
-              />
+              <SheetHeader><SheetTitle>Settings</SheetTitle></SheetHeader>
+              <SettingsPanel config={config.config} viewMode={config.viewMode} onViewModeChange={config.setViewMode} onClose={() => config.setShowSettings(false)} addToast={addToast} />
             </SheetContent>
           </Sheet>
         </SidebarInset>
